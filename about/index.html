@@ -23,7 +23,7 @@
 <meta property="og:description" content="lalala">
 <meta property="og:locale">
 <meta property="article:published_time" content="2022-01-05T15:33:11.000Z">
-<meta property="article:modified_time" content="2022-01-08T14:57:59.977Z">
+<meta property="article:modified_time" content="2022-01-08T15:08:24.227Z">
 <meta property="article:author" content="Acceyuriko">
 <meta name="twitter:card" content="summary">
 
@@ -63,6 +63,7 @@
 
 <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/clipboard.js/1.5.10/clipboard.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/md5@2.3.0/md5.min.js"></script>
 
 <script>
     var yiliaConfig = {
@@ -342,7 +343,7 @@
       repo: 'Acceyuriko.github.io',
       owner: 'Acceyuriko',
       admin: ['Acceyuriko'],
-      id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
       distractionFreeMode: false, // Facebook-like distraction free mode
       title: 'Gitalk comments',
     })
