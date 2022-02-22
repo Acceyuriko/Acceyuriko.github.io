@@ -15,14 +15,18 @@
 
 
 
-<meta name="description" content="lalala">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Acceyuriko">
-<meta property="og:url" content="https://acceyuriko.github.io/archives/">
+<meta name="description" content="给 QtScrcpy 增加压枪功能">
+<meta property="og:type" content="article">
+<meta property="og:title" content="QtScrcpy 增加压枪">
+<meta property="og:url" content="https://acceyuriko.github.io/2022/02/21/QtScrcpy%E5%A2%9E%E5%8A%A0%E5%8E%8B%E6%9E%AA/">
 <meta property="og:site_name" content="Acceyuriko">
-<meta property="og:description" content="lalala">
+<meta property="og:description" content="给 QtScrcpy 增加压枪功能">
 <meta property="og:locale">
+<meta property="article:published_time" content="2022-02-21T11:26:00.000Z">
+<meta property="article:modified_time" content="2022-02-22T14:02:19.700Z">
 <meta property="article:author" content="Acceyuriko">
+<meta property="article:tag" content="QtScrcpy">
+<meta property="article:tag" content="和平精英">
 <meta name="twitter:card" content="summary">
 
 <link rel="apple-touch-icon" href= "/apple-touch-icon.png">
@@ -57,7 +61,7 @@
 <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
 
 
-<title>Archives | Acceyuriko</title>
+<title>QtScrcpy 增加压枪 | Acceyuriko</title>
 
 <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/clipboard.js/1.5.10/clipboard.min.js"></script>
@@ -68,8 +72,8 @@
         fancybox: true,
         animate: true,
         isHome: false,
-        isPost: false,
-        isArchive: true,
+        isPost: true,
+        isArchive: false,
         isTag: false,
         isCategory: false,
         fancybox_js: "https://cdn.bootcdn.net/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js",
@@ -247,87 +251,174 @@
     </div>
     <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
 </nav>
-      <div class="body-wrap">
+      <div class="body-wrap"><article id="post-QtScrcpy增加压枪" class="article article-type-post" itemscope itemprop="blogPost">
   
-  
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2022" class="archive-year">2022</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-          <div class="article-meta">
-              <a href="/2022/02/21/QtScrcpy%E5%A2%9E%E5%8A%A0%E5%8E%8B%E6%9E%AA/" class="archive-article-date">
-      <time datetime="2022-02-21T11:26:00.000Z" itemprop="datePublished">02-21</time>
+    <div class="article-meta">
+      <a href="/2022/02/21/QtScrcpy%E5%A2%9E%E5%8A%A0%E5%8E%8B%E6%9E%AA/" class="article-date">
+      <time datetime="2022-02-21T11:26:00.000Z" itemprop="datePublished">2022-02-21</time>
 </a>
 
-        </div>
-         
+    </div>
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2022/02/21/QtScrcpy%E5%A2%9E%E5%8A%A0%E5%8E%8B%E6%9E%AA/">QtScrcpy 增加压枪</a>
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      QtScrcpy 增加压枪
     </h1>
   
 
-        <div class="article-info info-on-archive">
-          
+      </header>
+      
+      <div class="article-info article-info-post">
+        
 
-          
+        
     <div class="article-tag tagcloud">
         <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QtScrcpy/" rel="tag">QtScrcpy</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%92%8C%E5%B9%B3%E7%B2%BE%E8%8B%B1/" rel="tag">和平精英</a></li></ul>
     </div>
 
-        </div>
         <div class="clearfix"></div>
-    </header>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>手搓和平精英太伤眼睛，在淘宝买了北通E1接外设打，体验并不好，视角乱跳，投屏卡顿。 一顿研究发现了这个神器，<a target="_blank" rel="noopener" href="https://github.com/barry-ran/QtScrcpy">QtScrcpy</a>，流畅，好用。不过相比淘宝的外设缺少了自动压枪功能，因此想着给 QtScrcpy 加上压枪功能。写篇博客记录一下制作流程。</p>
+<p>基本思路是</p>
+<ul>
+<li>截取足够数量的游戏里的按钮图像，用 OpenCV 的 SVM 做训练，以识别人物蹲、趴、站状态，枪的类型，倍镜，以及是否开镜等状态</li>
+<li>观察代码发现，QtScrcpy 使用 OpenGL 渲染 yuv 图像。因此在 render 过程中，每隔一段时间，取一帧图像出来，截取按钮位置的图像，交给 OpenCV 识别，按钮位置应该记录在配置文件中，方便修改</li>
+<li>维护一个 map，根据不同的游戏状态，设置相对应的压枪参数，这个 map 也应该记录在配置文件中</li>
+<li>添加一种按键类型 KMT_RECOIL，当按下该键时，发出 touchdown 事件，并根据压枪参数每帧或定时进行 touchmove， 当按钮抬起时，发出 touchup</li>
+</ul>
+<h3 id="实现过程（待续）"><a href="#实现过程（待续）" class="headerlink" title="实现过程（待续）"></a>实现过程（待续）</h3>
+      
+    </div>
+    
   </div>
-</article>
   
     
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-          <div class="article-meta">
-              <a href="/2022/01/02/hades%E4%BD%9C%E5%BC%8A%E7%AC%94%E8%AE%B0/" class="archive-article-date">
-      <time datetime="2022-01-02T08:10:00.000Z" itemprop="datePublished">01-02</time>
-</a>
-
-        </div>
-         
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2022/01/02/hades%E4%BD%9C%E5%BC%8A%E7%AC%94%E8%AE%B0/">Hades 作弊笔记</a>
-    </h1>
-  
-
-        <div class="article-info info-on-archive">
-          
-
-          
-    <div class="article-tag tagcloud">
-        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hades/" rel="tag">hades</a></li></ul>
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2022/02/21/QtScrcpy%E5%A2%9E%E5%8A%A0%E5%8E%8B%E6%9E%AA/">QtScrcpy 增加压枪</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页"></a></p>
+        <p><span>发布时间:</span>2022-02-21, 19:26:00</p>
+        <p><span>最后更新:</span>2022-02-22, 14:02:19</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2022/02/21/QtScrcpy%E5%A2%9E%E5%8A%A0%E5%8E%8B%E6%9E%AA/" title="QtScrcpy 增加压枪">https://acceyuriko.github.io/2022/02/21/QtScrcpy%E5%A2%9E%E5%8A%A0%E5%8E%8B%E6%9E%AA/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://acceyuriko.github.io/2022/02/21/QtScrcpy%E5%A2%9E%E5%8A%A0%E5%8E%8B%E6%9E%AA/　　作者: " title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
     </div>
 
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
+
+
+    <nav id="article-nav">
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2022/01/02/hades%E4%BD%9C%E5%BC%8A%E7%AC%94%E8%AE%B0/">
+                    Hades 作弊笔记
+                </a>
+            </div>
+        
+    </nav>
+
+  
 </article>
-  
-  
-    </div></section>
-  
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E8%BF%87%E7%A8%8B%EF%BC%88%E5%BE%85%E7%BB%AD%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">实现过程（待续）</span></a></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
 
     
+<div class="share">
+    
 
+    
+        <div class="addthis_inline_share_toolbox"></div>
+    
+</div>
+
+
+
+
+
+
+
+  <div id="gitalk-container"></div>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+  <script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+  <script>
+    var gitalk = new Gitalk({
+      clientID: '35ac28a90389c4f48242',
+      clientSecret: 'a7cdd6e1d21d50615b1f58c232cfb940e1e53b8e',
+      repo: 'Acceyuriko.github.io',
+      owner: 'Acceyuriko',
+      admin: ['Acceyuriko'],
+      id: SparkMD5.hash(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false, // Facebook-like distraction free mode
+      title: 'Gitalk comments',
+    })
+    gitalk.render('gitalk-container')
+  </script>
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/" title="回到主页"><i class="fa fa-home"></i></a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2022/01/02/hades%E4%BD%9C%E5%BC%8A%E7%AC%94%E8%AE%B0/" title="下一篇: Hades 作弊笔记">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2022/02/21/QtScrcpy%E5%A2%9E%E5%8A%A0%E5%8E%8B%E6%9E%AA/">QtScrcpy 增加压枪</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/01/02/hades%E4%BD%9C%E5%BC%8A%E7%AC%94%E8%AE%B0/">Hades 作弊笔记</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
 </div>
       <footer id="footer">
     <div class="outer">
