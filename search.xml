@@ -4,6 +4,29 @@
   
     
     <entry>
+      <title>SPH 流体仿真</title>
+      <link href="/2022/04/18/SPH%E6%B5%81%E4%BD%93%E4%BB%BF%E7%9C%9F/"/>
+      <url>/2022/04/18/SPH%E6%B5%81%E4%BD%93%E4%BB%BF%E7%9C%9F/</url>
+      
+        <content type="html"><![CDATA[<p>效果如下图所示<br><img src="https://github.com/Acceyuriko/FluidSimulation/raw/main/Preview/preview.gif" alt="preview"></p><p>代码见 github: <a href="https://github.com/Acceyuriko/FluidSimulation">Fluid Simulation</a></p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> Unity </tag>
+            
+            <tag> DOTS </tag>
+            
+            <tag> SPH </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>QtScrcpy 增加压枪</title>
       <link href="/2022/02/21/QtScrcpy%E5%A2%9E%E5%8A%A0%E5%8E%8B%E6%9E%AA/"/>
       <url>/2022/02/21/QtScrcpy%E5%A2%9E%E5%8A%A0%E5%8E%8B%E6%9E%AA/</url>
