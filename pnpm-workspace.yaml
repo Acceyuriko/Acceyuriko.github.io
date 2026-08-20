@@ -1,0 +1,5 @@
+allowBuilds:
+  hexo-util: true
+overrides:
+  ejs: ^3.1.10
+  '@adobe/css-tools': ^4.3.2
