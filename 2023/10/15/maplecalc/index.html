@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="Acceyuriko" />
+
+
+
+<meta name="description" content="完美核心、找茬、OCR 和屏幕捕获，几个完全不同的小问题，为什么最后都被我塞进了同一个浏览器工具箱？">
+<meta property="og:type" content="article">
+<meta property="og:title" content="不想再查表了，于是我做了 MapleCalc">
+<meta property="og:url" content="https://acceyuriko.github.io/2023/10/15/maplecalc/">
+<meta property="og:site_name" content="Acceyuriko">
+<meta property="og:description" content="完美核心、找茬、OCR 和屏幕捕获，几个完全不同的小问题，为什么最后都被我塞进了同一个浏览器工具箱？">
+<meta property="og:locale">
+<meta property="article:published_time" content="2023-10-15T16:46:25.000Z">
+<meta property="article:modified_time" content="2026-08-20T11:42:32.466Z">
+<meta property="article:author" content="Acceyuriko">
+<meta property="article:tag" content="React">
+<meta property="article:tag" content="TypeScript">
+<meta property="article:tag" content="开源项目">
+<meta property="article:tag" content="游戏工具">
+<meta name="twitter:card" content="summary">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="Acceyuriko" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="https://cdn.bootcdn.net/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="https://cdn.bootcdn.net/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+
+<link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>不想再查表了，于是我做了 MapleCalc | Acceyuriko</title>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/clipboard.js/1.5.10/clipboard.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/spark-md5@3.0.2/spark-md5.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "https://cdn.bootcdn.net/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "https://cdn.bootcdn.net/ajax/libs/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: true
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="https://avatars.githubusercontent.com/u/7571003?v=4" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/"></a></h1>
+        </hgroup>
+
+        
+
+        
+            <form id="search-form">
+            <input type="text" id="local-search-input" name="q" placeholder="search..." class="search form-control" autocomplete="off" autocorrect="off" searchonload="" />
+            <i class="fa fa-times" onclick="resetSearch()"></i>
+            </form>
+            <div id="local-search-result"></div>
+            <p class='no-result'>No results found <i class='fa fa-spinner fa-pulse'></i></p>
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="mailto:Acceyuriko@gmail.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" rel="noopener" href="https://github.com/Acceyuriko" title="GitHub"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/BepInEx/" rel="tag">BepInEx</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CSharp/" rel="tag">CSharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ComputeShader/" rel="tag">ComputeShader</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DOTS/" rel="tag">DOTS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Express/" rel="tag">Express</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Harmony/" rel="tag">Harmony</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Node-js/" rel="tag">Node.js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/React/" rel="tag">React</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rust/" rel="tag">Rust</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SPH/" rel="tag">SPH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TypeScript/" rel="tag">TypeScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Unity/" rel="tag">Unity</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web-Worker/" rel="tag">Web Worker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YOLO/" rel="tag">YOLO</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hades/" rel="tag">hades</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/" rel="tag">开源项目</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E4%BA%BA/" rel="tag">机器人</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E8%AE%A1%E7%AE%97/" rel="tag">概率计算</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B8%B8%E6%88%8F%E5%B7%A5%E5%85%B7/" rel="tag">游戏工具</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="tag">计算机视觉</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%8F%E5%8C%96%E4%BA%A4%E6%98%93/" rel="tag">量化交易</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="https://pages.github.com/">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="http://moxfive.xyz/">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页"></a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="https://avatars.githubusercontent.com/u/7571003?v=4" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页"></a></h1>
+            </hgroup>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:Acceyuriko@gmail.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/Acceyuriko" title="GitHub"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-maplecalc" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2023/10/15/maplecalc/" class="article-date">
+      <time datetime="2023-10-15T16:46:25.000Z" itemprop="datePublished">2023-10-16</time>
+</a>
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      不想再查表了，于是我做了 MapleCalc
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/React/" rel="tag">React</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/TypeScript/" rel="tag">TypeScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/" rel="tag">开源项目</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B8%B8%E6%88%8F%E5%B7%A5%E5%85%B7/" rel="tag">游戏工具</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p><a target="_blank" rel="noopener" href="https://github.com/Acceyuriko/MapleCalc">MapleCalc</a> 是一个用 React + Vite 做的冒险岛计算工具集。它的出发点并不宏大：游戏里有些事情要查表，有些事情要肉眼比较图片，还有些事情要盯着视频帧里的文字发呆。我想把这些“每次都要重新做一遍”的小麻烦装进浏览器，于是 MapleCalc 慢慢变成了一个个人工具实验台。</p>
+<p>它里面有完美核心查找、找茬、起源之塔和卖轮等页面。几个工具用到的算法完全不同，却共用同一套前端外壳；这种“一个入口，几种奇怪问题”的组合，反而比单独做一个页面更能体现浏览器端应用的边界。<em>(:з」∠)</em></p>
+<h2 id="为什么坚持做成纯前端"><a href="#为什么坚持做成纯前端" class="headerlink" title="为什么坚持做成纯前端"></a>为什么坚持做成纯前端</h2><p>MapleCalc 的输入大多来自用户自己的技能选择、图片或屏幕画面，计算也不需要多人协作。因此它没有后端和数据库，图片、视频帧与 OCR 结果都留在浏览器内存中。这样部署到静态站点很轻，用户也不需要上传自己的截图。</p>
+<p>项目使用 React、TypeScript、Vite 和 Ant Design，路由采用 <code>HashRouter</code>。Hash 路由有点朴素，却非常适合 GitHub Pages：访问 <code>#/home</code>、<code>#/find-diff</code>、<code>#/oz</code> 或 <code>#/fz</code> 时，静态服务器不需要理解前端路由，也不需要额外配置回退规则。</p>
+<p>左侧菜单和页面路由使用同一份配置，打开首页、找茬、爬塔或卖轮工具时不会出现菜单高亮与实际地址不一致的情况。这里没有什么惊天动地的架构，但个人工具最重要的就是“打开就能用”，少一点部署魔法，少一点半夜排查 404 的痛苦。</p>
+<h2 id="完美核心：这其实是一个搜索问题"><a href="#完美核心：这其实是一个搜索问题" class="headerlink" title="完美核心：这其实是一个搜索问题"></a>完美核心：这其实是一个搜索问题</h2><p>完美核心查找器的输入是角色技能和目标组合，输出是满足条件的核心方案。最开始很容易把它理解成“把所有排列组合生成出来，再筛选一下”，但技能一多，浏览器会先陷入沉思，用户再跟着一起沉思。</p>
+<p>实现上，技能组合被整理成可搜索节点。递归从候选技能开始构造路径，维护当前已经选择的技能集合；如果发现技能重复、目标已经不可能满足，或者当前路径无法继续，就立刻回退。找到满足条件的组合后，再通过 <code>setPerfectNodes</code> 把搜索结果反向整理成界面能读懂的方案。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">候选技能节点</span><br><span class="line">      ↓</span><br><span class="line">选择一个技能，记录当前路径</span><br><span class="line">      ↓</span><br><span class="line">重复 / 不可能满足约束？── 是 → 剪枝回退</span><br><span class="line">      ↓ 否</span><br><span class="line">目标全部满足？────────── 是 → 保存方案</span><br><span class="line">      ↓ 否</span><br><span class="line">继续搜索下一层</span><br></pre></td></tr></table></figure>
+
+<p>这里真正有价值的是剪枝，而不是递归本身。每一层都知道还缺哪些目标技能，就不必把注定失败的分支走到底。页面也会显示无效技能和“没有找到完美核心”的反馈，让结果不是一张神秘的列表，而是一个有理由的计算结论。</p>
+<h2 id="找茬：最朴素的像素也很有用"><a href="#找茬：最朴素的像素也很有用" class="headerlink" title="找茬：最朴素的像素也很有用"></a>找茬：最朴素的像素也很有用</h2><p>找茬页面使用 Jimp 的浏览器实现读取两张图片，并遍历同一坐标上的像素。每个像素拆成 RGBA 通道进行比较，发现颜色差异后，在结果图上绘制标记区域。</p>
+<p>这种方法看起来没有计算机视觉论文里的复杂名词，但它特别适合尺寸一致、差异区域明确的截图。因为计算发生在浏览器里，原图不需要传到服务器；图片越大，内存和遍历时间越明显，所以页面需要在输入尺寸、比较精度和结果标记之间做取舍。</p>
+<p>像素比较也有它的诚实之处：抗压缩、缩放、亮度变化的能力并不神奇。如果两张图不是同一个尺寸，或者截图被重新编码，结果就可能出现大片差异。工具能把差异圈出来，但它不会假装自己理解了“这是不是有意义的变化”。这也正是小工具应该给用户的预期。</p>
+<h2 id="起源之塔：从屏幕流到答案匹配"><a href="#起源之塔：从屏幕流到答案匹配" class="headerlink" title="起源之塔：从屏幕流到答案匹配"></a>起源之塔：从屏幕流到答案匹配</h2><p><code>oz</code> 页面是一条更完整的浏览器视觉链路。用户通过 <code>navigator.mediaDevices.getDisplayMedia</code> 选择屏幕或视频流，程序把当前帧绘制到 Canvas，再从固定的识别区域提取楼层号、地图或题目文字，最后交给 Tesseract.js OCR。</p>
+<p>不同楼层的画面结构不一样，所以代码为 22、23、24、36、39、48 等楼层准备了独立的 <code>useFxx</code> 处理器。它们分别知道自己的文字区域、地图模式和答案规则，而不是强迫一个巨大的通用函数处理所有楼层。看起来文件多了，但每个问题都能在对应楼层的模块里找到，调试时反而轻松。</p>
+<p>OCR 结果不能直接当作答案。截图里的字体、缩放、压缩和背景都会造成空格、字符或标点误识别，因此程序会把文本与预置题库做 Levenshtein 距离匹配，在有限误差内找到最接近的题目或选项。地图识别则会把视频帧转换为 Jimp 图像，再交给楼层模块匹配路线和答案。</p>
+<p>识别区域、视频缩放和刷新间隔保存到 <code>localStorage</code> 的 <code>oz_rect_settings</code>。用户可以拖动矩形、调整缩放、降低识别频率，然后下次打开继续使用自己的校准结果。不同录制分辨率下，固定坐标几乎必然会出问题；把校准交给用户，是一个很实际的“不要和屏幕分辨率硬碰硬”的决定。</p>
+<h2 id="OCR-的代价：识别频率不是越高越好"><a href="#OCR-的代价：识别频率不是越高越好" class="headerlink" title="OCR 的代价：识别频率不是越高越好"></a>OCR 的代价：识别频率不是越高越好</h2><p>Tesseract.js 使用 Worker 执行 OCR，初始化时加载 <code>eng</code> 语言，并可针对不同楼层设置白名单字符或题目区域。它把计算从主 UI 线程挪开，页面至少不会因为一帧识别而完全失去响应，但 OCR 本身仍然比普通文本匹配昂贵得多。</p>
+<p>所以工具允许调整刷新间隔：画面变化很慢时，没有必要每一帧都识别；识别太频繁会占用 CPU，识别太慢又可能错过变化。这个参数不是“性能开关”那么简单，而是准确率、响应速度和设备负载之间的选择。做前端工具时，给出这个选择通常比假装存在一个适合所有机器的默认值更靠谱。</p>
+<h2 id="新增一个楼层处理器，大概会做什么"><a href="#新增一个楼层处理器，大概会做什么" class="headerlink" title="新增一个楼层处理器，大概会做什么"></a>新增一个楼层处理器，大概会做什么</h2><p>楼层模块通常需要先定义自己的识别矩形，再决定哪些区域交给 OCR，哪些区域交给图片匹配；之后还要把 OCR 的文本清洗、题库匹配和最终答案整理成统一返回值。这样 <code>useF22</code>、<code>useF23</code> 等处理器虽然各自知道楼层细节，页面仍然可以用同一个加载和结果展示流程。</p>
+<p>矩形设置放在 <code>localStorage</code>，解决的是“用户的屏幕比例和我的开发环境不一样”。但本地校准也意味着页面必须考虑权限被拒、用户停止共享、视频轨道结束和 OCR Worker 初始化失败等情况。浏览器 API 很方便，却不会替你处理这些生命周期；一个真正能用的工具，应该让失败状态也能被看懂。</p>
+<h2 id="完美核心搜索里，剪枝具体剪掉了什么"><a href="#完美核心搜索里，剪枝具体剪掉了什么" class="headerlink" title="完美核心搜索里，剪枝具体剪掉了什么"></a>完美核心搜索里，剪枝具体剪掉了什么</h2><p>搜索的状态不只是“当前选了哪些技能”，还包含当前路径、已经满足的目标和仍然可用的候选节点。每次递归进入下一层前，都可以问几个问题：当前组合有没有重复技能？剩余节点数量够不够填满缺口？某个目标技能是不是已经被放在不可能继续扩展的位置？如果答案说明这条路注定失败，就应该在生成更多子节点之前返回。</p>
+<p>这类剪枝对浏览器尤其重要，因为用户需要的是很快得到一组可读方案，而不是看到 JavaScript 在后台把所有排列组合慢慢堆完。搜索结果整理成界面数据时，还要把技能顺序、组合关系和失败原因表达出来；只有这样，“没有找到完美核心”才不是一个冷冰冰的空数组。</p>
+<p>如果未来增加缓存，可以把已经搜索过的“剩余目标 + 候选集合”作为状态键，复用相同子问题的结果。但缓存也必须注意技能顺序和组合约束不能被错误合并。现在的实现保持递归逻辑直观，牺牲了一些高级优化，换来更容易验证的状态变化，这对个人工具是一个可以接受的取舍。</p>
+<h2 id="找茬为什么不做成“万能图像识别”"><a href="#找茬为什么不做成“万能图像识别”" class="headerlink" title="找茬为什么不做成“万能图像识别”"></a>找茬为什么不做成“万能图像识别”</h2><p>Jimp 像素比较的前提是两张图可以对齐。程序需要先处理尺寸、坐标和 RGBA 通道，再决定颜色差异达到什么程度才算变化；如果把抗压缩、旋转、缩放和光照变化都加入，问题就会从“比较两张截图”膨胀成一个完整的图像配准系统。</p>
+<p>所以 MapleCalc 选择把边界说清楚：相同场景、相近尺寸、差异区域明确时，逐像素比较简单而可靠；如果输入条件不满足，结果需要由用户复核，而不是让工具用一堆隐藏的阈值假装理解图片。一个小工具知道自己不会什么，有时比功能列表更重要。</p>
+<h2 id="前端结构：算法不同，外壳共用"><a href="#前端结构：算法不同，外壳共用" class="headerlink" title="前端结构：算法不同，外壳共用"></a>前端结构：算法不同，外壳共用</h2><p><code>App.tsx</code> 把 <code>/home</code>、<code>/find-diff</code>、<code>/oz</code> 和 <code>/fz</code> 映射到独立页面，Ant Design 菜单根据同一份路由配置生成。完美核心页面使用递归搜索，找茬页面使用像素比较，起源之塔使用 Canvas、屏幕捕获和 OCR，卖轮页面则处理另一类重复计算；它们不需要共享算法，但需要共享加载状态、错误提示、导航和参数保存习惯。</p>
+<p>这种结构很适合个人项目：新增一个工具时，可以先专注于问题本身，再接入已有的布局和菜单。页面之间的差异不会被一个“万能组件”抹平，公共部分也不会因为某一个页面的特殊需求而变得难以理解。</p>
+<h2 id="一点关于“辅助工具”的边界"><a href="#一点关于“辅助工具”的边界" class="headerlink" title="一点关于“辅助工具”的边界"></a>一点关于“辅助工具”的边界</h2><p>MapleCalc 主要是把重复计算、图像比较和本地识别做成可解释的小工具。它没有后端，也不需要把用户画面上传到第三方服务；算法和输入都在页面里，用户可以看到自己调整了什么、结果为什么变化。</p>
+<p>我喜欢这种规模：问题足够具体，结果足够直观，技术又刚好能覆盖搜索、图像处理、浏览器权限、OCR 和静态部署。它不替玩家做所有决定，只把规则和计算过程摊开来，让“我觉得应该这样”多一个可以核对的依据。能把小麻烦变小一点，已经很不错了 (｀・ω・´)</p>
+<h2 id="把隐私和部署成本一起算进去"><a href="#把隐私和部署成本一起算进去" class="headerlink" title="把隐私和部署成本一起算进去"></a>把隐私和部署成本一起算进去</h2><p>所有图片、屏幕流和 OCR 处理都在浏览器端完成，意味着用户不必把自己的素材上传到服务器，也意味着低性能设备会承担更多本地计算。这个取舍是透明的：部署简单、没有后端存储风险，但页面需要给出权限提示、加载状态和合理的刷新频率。</p>
+<p>我更愿意让 MapleCalc 保持这种“小而明确”的形状。它不是一个无所不能的自动化平台，而是把几个高频、可解释的问题分别解决好；当算法不确定时把结果交还给用户，而不是用更复杂的黑盒把不确定性藏起来。</p>
+<p>项目代码见 <a target="_blank" rel="noopener" href="https://github.com/Acceyuriko/MapleCalc">github.com&#x2F;Acceyuriko&#x2F;MapleCalc</a>，完美核心查找器可以直接访问 <a href="https://acceyuriko.github.io/MapleCalc/#/home">MapleCalc 在线工具</a>。</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2023/10/15/maplecalc/">不想再查表了，于是我做了 MapleCalc</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页"></a></p>
+        <p><span>发布时间:</span>2023-10-16, 00:46:25</p>
+        <p><span>最后更新:</span>2026-08-20, 11:42:32</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2023/10/15/maplecalc/" title="不想再查表了，于是我做了 MapleCalc">https://acceyuriko.github.io/2023/10/15/maplecalc/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://acceyuriko.github.io/2023/10/15/maplecalc/　　作者: " title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2024/11/14/chunmao-bot/">
+                    群里那句“能不能再查一下”，最后长成了 chunmao
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2022/06/11/dspyurikoplugin/">
+                    把戴森球计划的 Tick 拆开看：一次 Harmony 插件考古
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%9D%9A%E6%8C%81%E5%81%9A%E6%88%90%E7%BA%AF%E5%89%8D%E7%AB%AF"><span class="toc-number">1.</span> <span class="toc-text">为什么坚持做成纯前端</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%8C%E7%BE%8E%E6%A0%B8%E5%BF%83%EF%BC%9A%E8%BF%99%E5%85%B6%E5%AE%9E%E6%98%AF%E4%B8%80%E4%B8%AA%E6%90%9C%E7%B4%A2%E9%97%AE%E9%A2%98"><span class="toc-number">2.</span> <span class="toc-text">完美核心：这其实是一个搜索问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%BE%E8%8C%AC%EF%BC%9A%E6%9C%80%E6%9C%B4%E7%B4%A0%E7%9A%84%E5%83%8F%E7%B4%A0%E4%B9%9F%E5%BE%88%E6%9C%89%E7%94%A8"><span class="toc-number">3.</span> <span class="toc-text">找茬：最朴素的像素也很有用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B5%B7%E6%BA%90%E4%B9%8B%E5%A1%94%EF%BC%9A%E4%BB%8E%E5%B1%8F%E5%B9%95%E6%B5%81%E5%88%B0%E7%AD%94%E6%A1%88%E5%8C%B9%E9%85%8D"><span class="toc-number">4.</span> <span class="toc-text">起源之塔：从屏幕流到答案匹配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OCR-%E7%9A%84%E4%BB%A3%E4%BB%B7%EF%BC%9A%E8%AF%86%E5%88%AB%E9%A2%91%E7%8E%87%E4%B8%8D%E6%98%AF%E8%B6%8A%E9%AB%98%E8%B6%8A%E5%A5%BD"><span class="toc-number">5.</span> <span class="toc-text">OCR 的代价：识别频率不是越高越好</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B0%E5%A2%9E%E4%B8%80%E4%B8%AA%E6%A5%BC%E5%B1%82%E5%A4%84%E7%90%86%E5%99%A8%EF%BC%8C%E5%A4%A7%E6%A6%82%E4%BC%9A%E5%81%9A%E4%BB%80%E4%B9%88"><span class="toc-number">6.</span> <span class="toc-text">新增一个楼层处理器，大概会做什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%8C%E7%BE%8E%E6%A0%B8%E5%BF%83%E6%90%9C%E7%B4%A2%E9%87%8C%EF%BC%8C%E5%89%AA%E6%9E%9D%E5%85%B7%E4%BD%93%E5%89%AA%E6%8E%89%E4%BA%86%E4%BB%80%E4%B9%88"><span class="toc-number">7.</span> <span class="toc-text">完美核心搜索里，剪枝具体剪掉了什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%BE%E8%8C%AC%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E5%81%9A%E6%88%90%E2%80%9C%E4%B8%87%E8%83%BD%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB%E2%80%9D"><span class="toc-number">8.</span> <span class="toc-text">找茬为什么不做成“万能图像识别”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%AB%AF%E7%BB%93%E6%9E%84%EF%BC%9A%E7%AE%97%E6%B3%95%E4%B8%8D%E5%90%8C%EF%BC%8C%E5%A4%96%E5%A3%B3%E5%85%B1%E7%94%A8"><span class="toc-number">9.</span> <span class="toc-text">前端结构：算法不同，外壳共用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E7%82%B9%E5%85%B3%E4%BA%8E%E2%80%9C%E8%BE%85%E5%8A%A9%E5%B7%A5%E5%85%B7%E2%80%9D%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="toc-number">10.</span> <span class="toc-text">一点关于“辅助工具”的边界</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8A%8A%E9%9A%90%E7%A7%81%E5%92%8C%E9%83%A8%E7%BD%B2%E6%88%90%E6%9C%AC%E4%B8%80%E8%B5%B7%E7%AE%97%E8%BF%9B%E5%8E%BB"><span class="toc-number">11.</span> <span class="toc-text">把隐私和部署成本一起算进去</span></a></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+
+    
+        <div class="addthis_inline_share_toolbox"></div>
+    
+</div>
+
+
+
+
+
+
+
+  <div id="gitalk-container"></div>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+  <script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+  <script>
+    var gitalk = new Gitalk({
+      clientID: '35ac28a90389c4f48242',
+      clientSecret: 'a7cdd6e1d21d50615b1f58c232cfb940e1e53b8e',
+      repo: 'Acceyuriko.github.io',
+      owner: 'Acceyuriko',
+      admin: ['Acceyuriko'],
+      id: SparkMD5.hash(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false, // Facebook-like distraction free mode
+      title: 'Gitalk comments',
+    })
+    gitalk.render('gitalk-container')
+  </script>
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2024/11/14/chunmao-bot/" title="上一篇: 群里那句“能不能再查一下”，最后长成了 chunmao">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2022/06/11/dspyurikoplugin/" title="下一篇: 把戴森球计划的 Tick 拆开看：一次 Harmony 插件考古">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2026/08/20/kamijoutouma-quant/">先把数据弄对，再谈收益曲线：我在 KamijouTouma 里搭了一条交易链</a></li><li class="post-list-item"><a class="post-list-link" href="/2026/05/30/anqrwzui-computer-vision/">从一张 640×640 截图开始：anqrwzui 的视觉实验是怎么跑起来的</a></li><li class="post-list-item"><a class="post-list-link" href="/2025/03/02/xiaohei-baimeow/">装修文章也要有自己的家：XiaoHeiBaiMeow 的内容管道和猫咪交互</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/11/14/chunmao-bot/">群里那句“能不能再查一下”，最后长成了 chunmao</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/15/maplecalc/">不想再查表了，于是我做了 MapleCalc</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/06/11/dspyurikoplugin/">把戴森球计划的 Tick 拆开看：一次 Harmony 插件考古</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/05/10/fluid-simulation/">水为什么会炸？我在 FluidSimulation 里跑了两条 SPH 路线</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/01/28/camel-up-state-calculator/">骆驼到底谁更可能赢？我用穷举算了一张桌游概率表</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/01/02/hades%E4%BD%9C%E5%BC%8A%E7%AC%94%E8%AE%B0/">Hades 作弊笔记</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2022-2026 Acceyuriko
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="https://cdn.bootcdn.net/ajax/libs/require.js/2.3.6/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+    <script>
+        var originTitle = document.title;
+        var titleTime;
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                document.title = "(つェ⊂) 我藏好了哦~ " + originTitle;
+                clearTimeout(titleTime);
+            }
+            else {
+                document.title = "(*´∇｀*) 被你发现啦~ " + originTitle;
+                titleTime = setTimeout(function() {
+                    document.title = originTitle;
+                }, 2000);
+            }
+        })
+    </script>
+
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+    <script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-61d98b57938ef42b"></script>
+
+  </div>
+</body>
+</html>

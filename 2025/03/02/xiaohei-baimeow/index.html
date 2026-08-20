@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="Acceyuriko" />
+
+
+
+<meta name="description" content="从一份 Markdown 到线上文章卡片，中间经过了哪些索引、路由、缓存和视觉交互？">
+<meta property="og:type" content="article">
+<meta property="og:title" content="装修文章也要有自己的家：XiaoHeiBaiMeow 的内容管道和猫咪交互">
+<meta property="og:url" content="https://acceyuriko.github.io/2025/03/02/xiaohei-baimeow/">
+<meta property="og:site_name" content="Acceyuriko">
+<meta property="og:description" content="从一份 Markdown 到线上文章卡片，中间经过了哪些索引、路由、缓存和视觉交互？">
+<meta property="og:locale">
+<meta property="article:published_time" content="2025-03-02T15:49:45.000Z">
+<meta property="article:modified_time" content="2026-08-20T11:42:32.466Z">
+<meta property="article:author" content="Acceyuriko">
+<meta property="article:tag" content="React">
+<meta property="article:tag" content="TypeScript">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="开源项目">
+<meta name="twitter:card" content="summary">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="Acceyuriko" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="https://cdn.bootcdn.net/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="https://cdn.bootcdn.net/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+
+<link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>装修文章也要有自己的家：XiaoHeiBaiMeow 的内容管道和猫咪交互 | Acceyuriko</title>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/clipboard.js/1.5.10/clipboard.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/spark-md5@3.0.2/spark-md5.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "https://cdn.bootcdn.net/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "https://cdn.bootcdn.net/ajax/libs/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: true
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="https://avatars.githubusercontent.com/u/7571003?v=4" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/"></a></h1>
+        </hgroup>
+
+        
+
+        
+            <form id="search-form">
+            <input type="text" id="local-search-input" name="q" placeholder="search..." class="search form-control" autocomplete="off" autocorrect="off" searchonload="" />
+            <i class="fa fa-times" onclick="resetSearch()"></i>
+            </form>
+            <div id="local-search-result"></div>
+            <p class='no-result'>No results found <i class='fa fa-spinner fa-pulse'></i></p>
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="mailto:Acceyuriko@gmail.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" rel="noopener" href="https://github.com/Acceyuriko" title="GitHub"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/BepInEx/" rel="tag">BepInEx</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CSharp/" rel="tag">CSharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ComputeShader/" rel="tag">ComputeShader</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DOTS/" rel="tag">DOTS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Express/" rel="tag">Express</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Harmony/" rel="tag">Harmony</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Node-js/" rel="tag">Node.js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/React/" rel="tag">React</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rust/" rel="tag">Rust</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SPH/" rel="tag">SPH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TypeScript/" rel="tag">TypeScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Unity/" rel="tag">Unity</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web-Worker/" rel="tag">Web Worker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YOLO/" rel="tag">YOLO</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hades/" rel="tag">hades</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/" rel="tag">开源项目</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E4%BA%BA/" rel="tag">机器人</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E8%AE%A1%E7%AE%97/" rel="tag">概率计算</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B8%B8%E6%88%8F%E5%B7%A5%E5%85%B7/" rel="tag">游戏工具</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="tag">计算机视觉</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%8F%E5%8C%96%E4%BA%A4%E6%98%93/" rel="tag">量化交易</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="https://pages.github.com/">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="http://moxfive.xyz/">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页"></a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="https://avatars.githubusercontent.com/u/7571003?v=4" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页"></a></h1>
+            </hgroup>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:Acceyuriko@gmail.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/Acceyuriko" title="GitHub"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-xiaohei-baimeow" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2025/03/02/xiaohei-baimeow/" class="article-date">
+      <time datetime="2025-03-02T15:49:45.000Z" itemprop="datePublished">2025-03-02</time>
+</a>
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      装修文章也要有自己的家：XiaoHeiBaiMeow 的内容管道和猫咪交互
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/React/" rel="tag">React</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/TypeScript/" rel="tag">TypeScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/" rel="tag">开源项目</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p><a target="_blank" rel="noopener" href="https://github.com/Acceyuriko/XiaoHeiBaiMeow">XiaoHeiBaiMeow</a> 是一个面向装修内容的个人博客，线上站点是 <a target="_blank" rel="noopener" href="https://jiangjiang.zone/">jiangjiang.zone</a>。它写的是半包辅材、施工工艺、水电验收和装修过程记录，前端则故意带了一点轻松的视觉气质：波浪背景、猫咪加载动画、明暗主题、鼠标粒子……看起来像一只在装修现场到处巡视的猫。</p>
+<p>我做它时最不想要的结果，是每写一篇文章就去改一次 React 组件。内容应该待在内容该待的地方，组件负责展示，构建脚本负责把两边接起来。这个想法很普通，但真的把文章目录和页面逻辑分开以后，维护体验会从“每次发布都小心翼翼”变成“放一篇 Markdown，然后看它自己排好队”。<em>(:з」∠)</em></p>
+<h2 id="内容的源头：一个目录，一篇-Markdown"><a href="#内容的源头：一个目录，一篇-Markdown" class="headerlink" title="内容的源头：一个目录，一篇 Markdown"></a>内容的源头：一个目录，一篇 Markdown</h2><p>文章放在 <code>public/notes/&lt;文章名&gt;/index.md</code> 中，每篇文章通过 YAML front matter 描述标题、描述、创建时间、更新时间和标签。正文仍然是 Markdown，不需要在 JSX 里写一大段字符串，也不需要为了一个小标题触碰页面组件。</p>
+<p>构建时，<code>build-notes.ts</code> 遍历这些目录，读取每个 <code>index.md</code>，解析元数据并去掉 front matter，把正文和索引信息写入 <code>public/notes.json</code>，同时汇总全站标签：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">public/notes/*/index.md</span><br><span class="line">          ↓ YAML + Markdown</span><br><span class="line">build-notes.ts</span><br><span class="line">          ↓</span><br><span class="line">public/notes.json</span><br><span class="line">      ├─ notes：文章元数据与正文</span><br><span class="line">      └─ tags：去重后的标签及聚合信息</span><br><span class="line">          ↓</span><br><span class="line">React Query → 首页 / 归档 / 标签 / 文章详情</span><br></pre></td></tr></table></figure>
+
+<p>生成的条目还包含封面路径和字符数，文章按更新时间倒序排列，标签用 <code>Set</code> 去重。构建脚本会检查重复文章目录和缺失元数据，在构建阶段就报错，而不是等站点上线后才发现一篇文章没有标题、没有标签，或者两个页面互相覆盖。</p>
+<p>这一步很像给 Markdown 加了一层小型数据库索引，但它仍然保持文件系统的直观性：打开目录就能找到文章，Git diff 也能清楚地看到内容改了什么。</p>
+<h2 id="前端只请求一份事实"><a href="#前端只请求一份事实" class="headerlink" title="前端只请求一份事实"></a>前端只请求一份事实</h2><p>前端的 <code>useNotes</code> Hook 请求生成好的 <code>notes.json</code>，React Query 负责缓存，默认缓存时间约五分钟，并关闭不必要的后台轮询。首页、归档页、标签云和标签筛选都从同一份数据源计算，文章页则根据动态路由加载对应正文。</p>
+<p>这样可以避免一个很常见的个人博客问题：首页按一套排序，归档按另一套排序，标签页又手动维护第三份文章列表，最后同一篇文章在三个地方显示三个更新时间。索引文件成为唯一事实来源之后，页面只负责提出不同的视图。</p>
+<h2 id="一篇新文章从写完到上线，会经过什么"><a href="#一篇新文章从写完到上线，会经过什么" class="headerlink" title="一篇新文章从写完到上线，会经过什么"></a>一篇新文章从写完到上线，会经过什么</h2><p>我希望发布流程尽量接近“放文件”，但放文件不代表没有约定。新增文章时，需要创建一个新的目录和 <code>index.md</code>，补齐标题、描述、创建时间、更新时间与标签；如果有封面，再把图片放在同一目录。下一次 <code>pnpm build</code> 会先运行 TypeScript 构建和 <code>build-notes</code>，脚本扫描目录、解析 front matter、计算字符数并生成索引。</p>
+<p>如果标题或元数据缺失，构建阶段应该直接失败；如果文章目录重复，也要在生成 <code>notes.json</code> 前报错。这样问题会出现在作者刚提交代码的时候，而不是读者打开一个空白文章页之后。静态站点最舒服的地方是部署简单，最容易被忽略的地方则是构建脚本承担了很多内容质量检查。</p>
+<p>生成的文章条目需要同时服务首页卡片、归档排序、标签聚合和详情页，所以字段命名和时间格式要稳定。前端组件不应该自己猜“这个文章到底有没有更新时间”，更不应该为了一个页面把日期格式化成另一种含义。</p>
+<p>文章详情使用 <code>/note/:title</code> 这样的动态路由，文章卡片、标签计数和归档列表共享同一套元数据。增加文章不需要修改路由组件，只要遵守目录和 front matter 约定，下一次构建就会把它带进来。</p>
+<h2 id="路由、懒加载和静态站点的现实"><a href="#路由、懒加载和静态站点的现实" class="headerlink" title="路由、懒加载和静态站点的现实"></a>路由、懒加载和静态站点的现实</h2><p>项目使用 React、TypeScript、Vite、React Router 和 Tailwind CSS。首页、关于、归档、文章、标签以及一些“宝藏”实验页面被拆成独立路由，主要页面通过 <code>lazy</code> 动态导入。首次访问时只加载布局、Header、Sidebar 和当前页面，打开文章或实验工具后才加载相应渲染逻辑。</p>
+<p>布局层组合 Header、侧边栏、正文和 Footer。Sidebar 根据当前路径高亮，Tags 页面把标签计数转换成 TagCloud，具体标签页再过滤文章并复用 NoteCard。每个组件各自维护一份文章数据看似简单，时间一长就容易排序不一致；这里尽量让数据在 Hook 层集中，组件只做展示。</p>
+<p>部署目标是静态托管，所以文章索引在构建时完成，线上不需要 Node 服务或数据库。<code>build</code> 命令先执行 TypeScript 构建和 <code>build-notes</code>，再由 Vite 生成 <code>dist</code>。发布命令把静态资源部署到 Tencent Cloud Hosting，站点运行时只负责下载 HTML、JS、CSS 和文章数据。</p>
+<h2 id="视觉系统：不只是一张好看的背景图"><a href="#视觉系统：不只是一张好看的背景图" class="headerlink" title="视觉系统：不只是一张好看的背景图"></a>视觉系统：不只是一张好看的背景图</h2><p>项目的视觉部分使用 Tailwind CSS 自定义变量和动画。波浪背景、猫咪加载动画、文章卡片、时间线和响应式断点各自有独立组件；明暗主题通过 Zustand 管理并持久化到浏览器，CSS 根据主题状态切换颜色与背景。</p>
+<p>Header 中的 Neko 主题切换让“猫咪”不只是 Logo，而是贯穿交互的一点小线索；<code>mouse-firework</code> 则在非链接区域响应鼠标移动，产生粒子效果。它们都属于增强阅读氛围的附加层，不能阻塞文章加载，也不应该让键盘用户无法导航，所以视觉效果和内容结构保持相对独立。</p>
+<p>站点还留了一个“宝藏”区域，里面放电路、接缝等实验页面。这些页面和文章系统共用 Layout 与主题状态，但不参与装修文章索引。于是网站可以同时承担知识库和前端实验场两个角色：一边认真记录验收细节，一边让猫在页面角落里继续捣乱。</p>
+<h2 id="静态部署下，缓存和路径要一起考虑"><a href="#静态部署下，缓存和路径要一起考虑" class="headerlink" title="静态部署下，缓存和路径要一起考虑"></a>静态部署下，缓存和路径要一起考虑</h2><p>文章索引是在构建时写入 <code>public/notes.json</code>，正文和图片也属于静态资源，因此线上不需要数据库连接。但这也意味着内容更新依赖一次完整构建：只改了 Markdown 却没有重新生成索引，列表页可能看不到新文章；只更新索引却忘了上传图片，详情页又会出现缺图。</p>
+<p>React Query 的缓存适合文章变化不频繁的站点，但发布新内容后仍然需要考虑浏览器缓存和静态资源缓存。文件名、文章目录和索引更新时间保持稳定约定，能减少“本地已经更新，线上还在看旧版本”的错觉。个人博客没有复杂发布平台，反而更需要把构建产物和部署边界写清楚。</p>
+<p>路由这里使用的是 React Router 的 <code>createBrowserRouter</code> 和 <code>RouterProvider</code>，文章、归档、标签与“宝藏”页面都有正常的路径，例如 <code>/note/:title</code>、<code>/archives</code> 和 <code>/tag/:tag</code>。它使用浏览器 History API，所以静态主机部署时还要确保未知路径能够回退到入口 HTML；否则站内点击可以正常跳转，直接刷新深层链接却可能得到 404。这个小细节和文章索引一样，属于“本地没问题、上线才发现”的部署边界。</p>
+<h2 id="Markdown-内容如何变成可读页面"><a href="#Markdown-内容如何变成可读页面" class="headerlink" title="Markdown 内容如何变成可读页面"></a>Markdown 内容如何变成可读页面</h2><p>构建索引时，脚本把 front matter 与正文拆开；React 页面拿到条目后，再交给 Markdown 渲染层和统一的文章样式。标题、段落、列表、代码和图片有稳定的排版规则，文章内容不需要知道页面的布局细节。</p>
+<p>元数据中同时保留创建时间和更新时间，是因为装修笔记经常会被补充：第一次记录水电验收，之后可能追加现场照片、材料规格或返工结果。归档排序看更新时间，读者仍然可以看到文章是什么时候开始写的。对生活记录来说，这比只留一个模糊的发布时间更有信息量。</p>
+<h2 id="一些小功能背后的取舍"><a href="#一些小功能背后的取舍" class="headerlink" title="一些小功能背后的取舍"></a>一些小功能背后的取舍</h2><p>React Query 的缓存让切换首页、归档和标签页时不必重复请求同一份索引；懒加载减少初始 JavaScript；静态部署降低了运行成本；把图片和画面留在浏览器则避免为了视觉功能搭一套后端。这些选择并不追求“技术栈越新越好”，而是围绕个人站点的真实访问模式：内容更新不频繁，阅读访问多，构建时可以多做一点工作。</p>
+<p>与此同时，构建脚本要足够严格，主题状态要能够恢复，动画要允许被关闭或绕开，路由在静态环境里要稳定。博客看起来是轻项目，实际上同时面对内容正确性、首屏体验、移动端布局和部署路径四种问题。把这些问题提前放进约定里，后面写文章才不会每次都重新踩一遍。</p>
+<h2 id="这个项目最像什么"><a href="#这个项目最像什么" class="headerlink" title="这个项目最像什么"></a>这个项目最像什么</h2><p>XiaoHeiBaiMeow 有点像一间正在装修的数字房子：Markdown 是堆在房间里的材料，<code>build-notes.ts</code> 是负责清点材料的工人，React 是墙面与动线，Tailwind 是油漆和灯光，猫咪动画则是那只无论如何都要踩过刚拖完地面的猫。</p>
+<p>它没有复杂后端，却有内容目录、元数据解析、构建索引、标签聚合、动态详情、主题持久化和静态部署这一整套小而完整的闭环。对我来说，个人博客做到“新增文章不需要改代码，读者能顺畅找到文章，部署过程不靠手工祈祷”，就已经是非常舒服的结果了。喵。ฅ(&#x3D;ω&#x3D;ฅ)</p>
+<p>再往后做，我会继续把“内容正确性”和“视觉可爱”分开维护：前者由构建脚本、类型和路由保证，后者由主题、动画和组件负责。这样猫咪可以继续撒欢，文章也不会因为某个粒子效果加载失败就失去阅读能力。</p>
+<p>项目地址：<a target="_blank" rel="noopener" href="https://github.com/Acceyuriko/XiaoHeiBaiMeow">github.com&#x2F;Acceyuriko&#x2F;XiaoHeiBaiMeow</a>，线上体验：<a target="_blank" rel="noopener" href="https://jiangjiang.zone/">jiangjiang.zone</a>。</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2025/03/02/xiaohei-baimeow/">装修文章也要有自己的家：XiaoHeiBaiMeow 的内容管道和猫咪交互</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页"></a></p>
+        <p><span>发布时间:</span>2025-03-02, 23:49:45</p>
+        <p><span>最后更新:</span>2026-08-20, 11:42:32</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2025/03/02/xiaohei-baimeow/" title="装修文章也要有自己的家：XiaoHeiBaiMeow 的内容管道和猫咪交互">https://acceyuriko.github.io/2025/03/02/xiaohei-baimeow/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://acceyuriko.github.io/2025/03/02/xiaohei-baimeow/　　作者: " title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2026/05/30/anqrwzui-computer-vision/">
+                    从一张 640×640 截图开始：anqrwzui 的视觉实验是怎么跑起来的
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2024/11/14/chunmao-bot/">
+                    群里那句“能不能再查一下”，最后长成了 chunmao
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E5%AE%B9%E7%9A%84%E6%BA%90%E5%A4%B4%EF%BC%9A%E4%B8%80%E4%B8%AA%E7%9B%AE%E5%BD%95%EF%BC%8C%E4%B8%80%E7%AF%87-Markdown"><span class="toc-number">1.</span> <span class="toc-text">内容的源头：一个目录，一篇 Markdown</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%AB%AF%E5%8F%AA%E8%AF%B7%E6%B1%82%E4%B8%80%E4%BB%BD%E4%BA%8B%E5%AE%9E"><span class="toc-number">2.</span> <span class="toc-text">前端只请求一份事实</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E7%AF%87%E6%96%B0%E6%96%87%E7%AB%A0%E4%BB%8E%E5%86%99%E5%AE%8C%E5%88%B0%E4%B8%8A%E7%BA%BF%EF%BC%8C%E4%BC%9A%E7%BB%8F%E8%BF%87%E4%BB%80%E4%B9%88"><span class="toc-number">3.</span> <span class="toc-text">一篇新文章从写完到上线，会经过什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B7%AF%E7%94%B1%E3%80%81%E6%87%92%E5%8A%A0%E8%BD%BD%E5%92%8C%E9%9D%99%E6%80%81%E7%AB%99%E7%82%B9%E7%9A%84%E7%8E%B0%E5%AE%9E"><span class="toc-number">4.</span> <span class="toc-text">路由、懒加载和静态站点的现实</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%86%E8%A7%89%E7%B3%BB%E7%BB%9F%EF%BC%9A%E4%B8%8D%E5%8F%AA%E6%98%AF%E4%B8%80%E5%BC%A0%E5%A5%BD%E7%9C%8B%E7%9A%84%E8%83%8C%E6%99%AF%E5%9B%BE"><span class="toc-number">5.</span> <span class="toc-text">视觉系统：不只是一张好看的背景图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%99%E6%80%81%E9%83%A8%E7%BD%B2%E4%B8%8B%EF%BC%8C%E7%BC%93%E5%AD%98%E5%92%8C%E8%B7%AF%E5%BE%84%E8%A6%81%E4%B8%80%E8%B5%B7%E8%80%83%E8%99%91"><span class="toc-number">6.</span> <span class="toc-text">静态部署下，缓存和路径要一起考虑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Markdown-%E5%86%85%E5%AE%B9%E5%A6%82%E4%BD%95%E5%8F%98%E6%88%90%E5%8F%AF%E8%AF%BB%E9%A1%B5%E9%9D%A2"><span class="toc-number">7.</span> <span class="toc-text">Markdown 内容如何变成可读页面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%BA%9B%E5%B0%8F%E5%8A%9F%E8%83%BD%E8%83%8C%E5%90%8E%E7%9A%84%E5%8F%96%E8%88%8D"><span class="toc-number">8.</span> <span class="toc-text">一些小功能背后的取舍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%99%E4%B8%AA%E9%A1%B9%E7%9B%AE%E6%9C%80%E5%83%8F%E4%BB%80%E4%B9%88"><span class="toc-number">9.</span> <span class="toc-text">这个项目最像什么</span></a></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+
+    
+        <div class="addthis_inline_share_toolbox"></div>
+    
+</div>
+
+
+
+
+
+
+
+  <div id="gitalk-container"></div>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+  <script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+  <script>
+    var gitalk = new Gitalk({
+      clientID: '35ac28a90389c4f48242',
+      clientSecret: 'a7cdd6e1d21d50615b1f58c232cfb940e1e53b8e',
+      repo: 'Acceyuriko.github.io',
+      owner: 'Acceyuriko',
+      admin: ['Acceyuriko'],
+      id: SparkMD5.hash(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false, // Facebook-like distraction free mode
+      title: 'Gitalk comments',
+    })
+    gitalk.render('gitalk-container')
+  </script>
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2026/05/30/anqrwzui-computer-vision/" title="上一篇: 从一张 640×640 截图开始：anqrwzui 的视觉实验是怎么跑起来的">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2024/11/14/chunmao-bot/" title="下一篇: 群里那句“能不能再查一下”，最后长成了 chunmao">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2026/08/20/kamijoutouma-quant/">先把数据弄对，再谈收益曲线：我在 KamijouTouma 里搭了一条交易链</a></li><li class="post-list-item"><a class="post-list-link" href="/2026/05/30/anqrwzui-computer-vision/">从一张 640×640 截图开始：anqrwzui 的视觉实验是怎么跑起来的</a></li><li class="post-list-item"><a class="post-list-link" href="/2025/03/02/xiaohei-baimeow/">装修文章也要有自己的家：XiaoHeiBaiMeow 的内容管道和猫咪交互</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/11/14/chunmao-bot/">群里那句“能不能再查一下”，最后长成了 chunmao</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/15/maplecalc/">不想再查表了，于是我做了 MapleCalc</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/06/11/dspyurikoplugin/">把戴森球计划的 Tick 拆开看：一次 Harmony 插件考古</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/05/10/fluid-simulation/">水为什么会炸？我在 FluidSimulation 里跑了两条 SPH 路线</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/01/28/camel-up-state-calculator/">骆驼到底谁更可能赢？我用穷举算了一张桌游概率表</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/01/02/hades%E4%BD%9C%E5%BC%8A%E7%AC%94%E8%AE%B0/">Hades 作弊笔记</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2022-2026 Acceyuriko
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="https://cdn.bootcdn.net/ajax/libs/require.js/2.3.6/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+    <script>
+        var originTitle = document.title;
+        var titleTime;
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                document.title = "(つェ⊂) 我藏好了哦~ " + originTitle;
+                clearTimeout(titleTime);
+            }
+            else {
+                document.title = "(*´∇｀*) 被你发现啦~ " + originTitle;
+                titleTime = setTimeout(function() {
+                    document.title = originTitle;
+                }, 2000);
+            }
+        })
+    </script>
+
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+    <script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-61d98b57938ef42b"></script>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="Acceyuriko" />
+
+
+
+<meta name="description" content="把 20 格棋盘、叠放顺序、特殊骆驼和陷阱写成状态机，再交给递归和 Web Worker 算出名次概率。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="骆驼到底谁更可能赢？我用穷举算了一张桌游概率表">
+<meta property="og:url" content="https://acceyuriko.github.io/2022/01/28/camel-up-state-calculator/">
+<meta property="og:site_name" content="Acceyuriko">
+<meta property="og:description" content="把 20 格棋盘、叠放顺序、特殊骆驼和陷阱写成状态机，再交给递归和 Web Worker 算出名次概率。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2022-01-28T07:45:02.000Z">
+<meta property="article:modified_time" content="2026-08-20T11:42:32.466Z">
+<meta property="article:author" content="Acceyuriko">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="Web Worker">
+<meta property="article:tag" content="开源项目">
+<meta property="article:tag" content="概率计算">
+<meta name="twitter:card" content="summary">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="Acceyuriko" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="https://cdn.bootcdn.net/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="https://cdn.bootcdn.net/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+
+<link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>骆驼到底谁更可能赢？我用穷举算了一张桌游概率表 | Acceyuriko</title>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/clipboard.js/1.5.10/clipboard.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/spark-md5@3.0.2/spark-md5.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "https://cdn.bootcdn.net/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "https://cdn.bootcdn.net/ajax/libs/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: true
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="https://avatars.githubusercontent.com/u/7571003?v=4" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/"></a></h1>
+        </hgroup>
+
+        
+
+        
+            <form id="search-form">
+            <input type="text" id="local-search-input" name="q" placeholder="search..." class="search form-control" autocomplete="off" autocorrect="off" searchonload="" />
+            <i class="fa fa-times" onclick="resetSearch()"></i>
+            </form>
+            <div id="local-search-result"></div>
+            <p class='no-result'>No results found <i class='fa fa-spinner fa-pulse'></i></p>
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="mailto:Acceyuriko@gmail.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" rel="noopener" href="https://github.com/Acceyuriko" title="GitHub"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/BepInEx/" rel="tag">BepInEx</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CSharp/" rel="tag">CSharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ComputeShader/" rel="tag">ComputeShader</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DOTS/" rel="tag">DOTS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Express/" rel="tag">Express</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Harmony/" rel="tag">Harmony</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Node-js/" rel="tag">Node.js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/React/" rel="tag">React</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rust/" rel="tag">Rust</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SPH/" rel="tag">SPH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TypeScript/" rel="tag">TypeScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Unity/" rel="tag">Unity</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web-Worker/" rel="tag">Web Worker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YOLO/" rel="tag">YOLO</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hades/" rel="tag">hades</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/" rel="tag">开源项目</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E4%BA%BA/" rel="tag">机器人</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E8%AE%A1%E7%AE%97/" rel="tag">概率计算</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B8%B8%E6%88%8F%E5%B7%A5%E5%85%B7/" rel="tag">游戏工具</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="tag">计算机视觉</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%8F%E5%8C%96%E4%BA%A4%E6%98%93/" rel="tag">量化交易</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="https://pages.github.com/">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="http://moxfive.xyz/">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页"></a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="https://avatars.githubusercontent.com/u/7571003?v=4" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页"></a></h1>
+            </hgroup>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:Acceyuriko@gmail.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/Acceyuriko" title="GitHub"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-camel-up-state-calculator" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2022/01/28/camel-up-state-calculator/" class="article-date">
+      <time datetime="2022-01-28T07:45:02.000Z" itemprop="datePublished">2022-01-28</time>
+</a>
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      骆驼到底谁更可能赢？我用穷举算了一张桌游概率表
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web-Worker/" rel="tag">Web Worker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/" rel="tag">开源项目</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E8%AE%A1%E7%AE%97/" rel="tag">概率计算</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p><a target="_blank" rel="noopener" href="https://github.com/Acceyuriko/CamelUpStateCalculator">CamelUpStateCalculator</a> 是一个给《骆驼快跑》使用的状态计算器。输入当前棋盘上的骆驼位置、叠放顺序、陷阱以及还没有掷出的骰子，工具会枚举当前小回合结束后每只骆驼处于第 1、2、5 名的概率。</p>
+<p>桌游里经常出现这样的瞬间：大家都说“这只看起来要赢了”，但白骆驼、黑骆驼、叠放顺序和陷阱一起搅进来以后，直觉就开始打滑。这个项目不替玩家下注，也不假装自己知道最佳策略，它只做一件很具体的事：把规则允许的后续状态算出来。<em>(:з」∠)</em></p>
+<h2 id="先把棋盘变成能计算的状态"><a href="#先把棋盘变成能计算的状态" class="headerlink" title="先把棋盘变成能计算的状态"></a>先把棋盘变成能计算的状态</h2><p>棋盘被表示为长度为 20 的格子数组，每个格子保存当前位置上的骆驼数组。红、黄、绿、蓝、紫是玩家骆驼，白、黑是特殊骆驼；数组顺序表示叠放关系，而不是一个可以随便忽略的附加字段。陷阱则用 <code>+1</code> 和 <code>-1</code> 表示不同方向的影响。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">camelIndex[格子位置] = [下方骆驼, ..., 上方骆驼]</span><br></pre></td></tr></table></figure>
+
+<p>因此，移动一只骆驼时不能只把它的坐标加上步数。如果目标骆驼上面还压着其他骆驼，整叠都要一起移动；落点已有骆驼时，新的一叠又要按照规则插入正确位置。白、黑骆驼的移动方向和普通骆驼不同，陷阱还会改变步数或叠放位置。</p>
+<p>状态建模如果在这里偷懒，后面的概率再精确也没有意义。一个“数组顺序搞反”的小错误，可能让整张概率表看起来很合理，却与桌面上的真实规则完全相反。</p>
+<h2 id="move：把复杂规则集中在一个纯函数里"><a href="#move：把复杂规则集中在一个纯函数里" class="headerlink" title="move：把复杂规则集中在一个纯函数里"></a><code>move</code>：把复杂规则集中在一个纯函数里</h2><p><code>iterator.js</code> 的核心是 <code>move</code> 和递归 <code>iteration</code>。<code>move</code> 先深拷贝当前状态，找到目标骆驼所在的格子，再取出目标骆驼和它上方的整组。落点为空时创建新数组；落点已有骆驼时，根据正向、反向、是否触发陷阱以及特殊骆驼规则，决定插入头部、尾部或第一个玩家骆驼之前。</p>
+<p>把这些规则集中在一个纯函数里有两个好处：第一，输入状态不会被递归分支互相污染；第二，规则出错时可以单独测试移动，而不用先跑完整的概率枚举。递归只负责“选择哪枚骰子、走几步、下一个状态是什么”，不需要同时理解叠骆驼的全部细节。</p>
+<p>这也是我处理桌游规则时很喜欢的做法：先把现实里的动作写成一个状态转换，再让搜索算法在这些转换上工作。只要 <code>move</code> 可信，后面增加 UI、Worker 或概率统计都不会重新发明规则。</p>
+<h2 id="枚举而不是随机模拟"><a href="#枚举而不是随机模拟" class="headerlink" title="枚举而不是随机模拟"></a>枚举而不是随机模拟</h2><p>每枚彩色骰子有 1、2、3 三种步数，代码用 <code>ratio: 2</code> 表示相应的骰面权重；白、黑骰子则分别展开白骆驼和黑骆驼的三种步数。递归每次从剩余骰子里选择一枚，展开它的可能结果，直到所有骰子都处理完成。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">当前状态 + 剩余骰子</span><br><span class="line">          ↓ 选择一枚骰子</span><br><span class="line">       1 / 2 / 3 步（或白 / 黑骆驼）</span><br><span class="line">          ↓</span><br><span class="line">        move 生成新状态</span><br><span class="line">          ↓</span><br><span class="line">      递归处理剩余骰子</span><br><span class="line">          ↓</span><br><span class="line">      最终状态统计名次</span><br></pre></td></tr></table></figure>
+
+<p>代码不是随机抽取几千次结果来估计概率，而是完整枚举所有可能的小回合状态。最终每个骆驼的计数除以 <code>totalState</code>，得到可以直接显示的小数概率。同一输入每次得到相同结果，规则变化也可以通过对比完整状态数来检查。</p>
+<p>完整枚举的代价是状态空间会迅速变大。好处是结果可复现、没有随机误差；坏处是浏览器主线程很快会忙到无法点击按钮。于是项目的下一步不是马上改成近似算法，而是把相同的计算搬到 Web Worker。</p>
+<h2 id="名次统计：叠放顺序决定最后的答案"><a href="#名次统计：叠放顺序决定最后的答案" class="headerlink" title="名次统计：叠放顺序决定最后的答案"></a>名次统计：叠放顺序决定最后的答案</h2><p>统计最终状态时，程序按棋盘格子从前往后遍历，再按照叠放数组从上方到下方遍历。白、黑特殊骆驼参与移动，但最终名次统计只记录五只玩家骆驼的第 1、2、5 名。</p>
+<p>这一步容易写成“按坐标排序然后取前三”，但《骆驼快跑》的叠放规则让同一格上的骆驼不能被当成平局。前方格子优先，位于同一格时上层关系又决定先后；如果忽略它，特殊骆驼移动带来的影响就会在最后一步消失。</p>
+<p>输出结构保留每只骆驼的计数和 <code>totalState</code>，主线程再把它们转换为概率并展示。保留计数而不是只传小数，方便调试：当两个结果不同的时候，可以继续追问究竟是状态总数变了，还是某一只骆驼命中的终局数变了。</p>
+<h2 id="为什么一定要用-Web-Worker"><a href="#为什么一定要用-Web-Worker" class="headerlink" title="为什么一定要用 Web Worker"></a>为什么一定要用 Web Worker</h2><p>完整展开时，主线程如果直接递归计算，页面会停止响应。用户点击了骰子，浏览器却像是在思考宇宙的终极问题一样迟迟没有反应。Worker 可以让计算在后台线程执行，主线程继续负责修改状态、显示加载中和更新结果。</p>
+<p>当任务量足够大时，项目还会继续拆分第一层。六枚骰子都可用时，第一层大约有 21 个分支：五枚彩色骰子各展开三个步数分支，白、黑骰子则分别展开对应骆驼的三个步数分支。主线程根据 <code>navigator.hardwareConcurrency</code> 创建多个 Worker，把任务分发出去；某个 Worker 完成后继续领取下一个任务。</p>
+<p>每个 Worker 只返回 <code>stateCount</code> 和 <code>totalState</code>，不把巨大的中间状态树传回主线程。主线程合并各分支计数，统一转换为概率并更新 Ant Design 表格。这样做不仅降低通信量，也把 UI 和枚举逻辑的责任分清楚了。</p>
+<p>Worker 通信也有实际成本：初始棋盘和剩余骰子需要序列化，任务拆得太细会让消息传输抵消并行收益，任务拆得太粗又会让部分 Worker 提前闲下来。因此项目只在第一层拆分较大的分支，让每个 Worker 在本地完成更深的递归，再返回很小的计数结果。这是浏览器并行计算里很典型的取舍：不是 Worker 越多越快，而是计算量和通信量要保持比例。</p>
+<h2 id="并行不会改变概率模型"><a href="#并行不会改变概率模型" class="headerlink" title="并行不会改变概率模型"></a>并行不会改变概率模型</h2><p>把第一层拆成多个 Worker 只是改变执行顺序，不会改变每个分支的规则和权重。每个分支仍然从同一个初始状态出发，使用同样的 <code>move</code> 和递归逻辑；最终只是把多个计数相加。</p>
+<p>这点很重要，因为并行化最怕悄悄引入另一套逻辑。如果某个 Worker 使用了不同的深拷贝方式、漏算了一枚骰子，结果可能只在特定输入下偏掉。项目选择让 Worker 做相对纯粹的枚举，把状态合并和概率转换留在一个地方，就是为了减少这种分叉。</p>
+<h2 id="状态树为什么会迅速变大"><a href="#状态树为什么会迅速变大" class="headerlink" title="状态树为什么会迅速变大"></a>状态树为什么会迅速变大</h2><p>每一层递归都要选择一枚尚未使用的骰子，再展开它的步数或特殊骆驼分支；下一层又从剩余骰子中选择。这里既有“选择哪一枚”的排列，也有“这一枚掷出几步”的分支，最后还要把叠放关系传播到终局。状态数量增长得很快，不能把每个中间状态都保存下来等待最后处理。</p>
+<p>所以 <code>iteration</code> 更像一台深度优先的计数器：生成一个状态，继续向下递归，到了终局就把相关名次计数加一，然后返回并释放这条分支。它只保留当前路径需要的状态，避免把完整状态树堆在内存里。深拷贝虽然有成本，却能保证兄弟分支不会互相改写；对这种规则复杂、结果需要可信的工具，先保证状态隔离比过早追求微优化更重要。</p>
+<p>骰面权重也不能被忘记。普通骰子不同步数的概率、白黑特殊骰子的分支，都要以同一套计数约定进入 <code>totalState</code>。如果只把分支数相加，却没有同步分母，最后得到的数字看起来仍然像概率，实际上已经失去解释。</p>
+<h2 id="怎样用小例子验证规则没有写反"><a href="#怎样用小例子验证规则没有写反" class="headerlink" title="怎样用小例子验证规则没有写反"></a>怎样用小例子验证规则没有写反</h2><p>完整枚举很适合做确定性测试。可以先构造只有一枚剩余骰子的局面，手工列出 1、2、3 步后的落点；再构造一个落点有叠骆驼的局面，检查目标骆驼上方的整叠是否一起移动；最后加入白、黑骆驼和正负陷阱，逐步比较 <code>stateCount</code> 与手算结果。</p>
+<p>这些小局面比直接拿一盘复杂棋局看最终百分比更容易定位问题。若最终结果不对，先问 <code>move</code> 是否产生了正确的新棋盘，再问递归是否漏了骰子，最后才检查名次统计和概率转换。把规则、枚举和展示分成三段，调试路径会短很多。</p>
+<h2 id="浏览器工具的界面也要尊重规则"><a href="#浏览器工具的界面也要尊重规则" class="headerlink" title="浏览器工具的界面也要尊重规则"></a>浏览器工具的界面也要尊重规则</h2><p>页面使用简单的 HTML 入口和浏览器端脚本，运行时加载 React、Ant Design、Lodash 等依赖。用户可以输入每个格子的骆驼、陷阱位置和可用骰子，然后触发计算并查看结果。没有服务端、没有数据库，项目可以直接部署到静态托管。</p>
+<p>状态输入界面其实和算法同样重要：如果骆驼叠放顺序不容易表达，用户就会在输入阶段把状态填错；如果加载状态不明显，就会误以为按钮没有反应；如果结果只显示一串百分比，却不说明是哪个剩余骰子集合，也很难复核。一个概率工具必须让“输入是什么、计算了什么、结果意味着什么”都尽量可见。</p>
+<h2 id="这个项目最后算出来的是什么"><a href="#这个项目最后算出来的是什么" class="headerlink" title="这个项目最后算出来的是什么"></a>这个项目最后算出来的是什么</h2><p>它算的不是“这局一定押哪只”，而是一个固定局面、固定剩余骰子集合下的条件概率。改变一枚骰子、移动一个陷阱、调整一叠骆驼的位置，重新计算后，概率变化就有了可以追踪的来源。</p>
+<p>对我来说，这个项目最有意思的地方，是把桌游里非常具象的东西——骆驼、格子、叠放、陷阱——翻译成纯函数、递归树、计数器和 Worker。规则没有因为变成代码而变简单，但至少它们变得可以被逐步检查。至于最后下注哪只？那还是留给桌边的人类吧 (｀・ω・´)</p>
+<p>如果把这个工具再往前推一步，我会增加“展开某个结果”的调试视图：用户点击一只骆驼的概率，就能看到它命中的终局数量、相关骰子分支和典型移动路径。概率表告诉你结果，路径视图则告诉你结果从哪里来；对桌游这种规则密集的问题，两者放在一起会比一个更大的百分比更有说服力。</p>
+<p>项目地址：<a target="_blank" rel="noopener" href="https://github.com/Acceyuriko/CamelUpStateCalculator">github.com&#x2F;Acceyuriko&#x2F;CamelUpStateCalculator</a>，在线工具：<a href="https://acceyuriko.github.io/CamelUpStateCalculator/">Camel Up State Calculator</a>。</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2022/01/28/camel-up-state-calculator/">骆驼到底谁更可能赢？我用穷举算了一张桌游概率表</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页"></a></p>
+        <p><span>发布时间:</span>2022-01-28, 15:45:02</p>
+        <p><span>最后更新:</span>2026-08-20, 11:42:32</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2022/01/28/camel-up-state-calculator/" title="骆驼到底谁更可能赢？我用穷举算了一张桌游概率表">https://acceyuriko.github.io/2022/01/28/camel-up-state-calculator/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://acceyuriko.github.io/2022/01/28/camel-up-state-calculator/　　作者: " title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2022/05/10/fluid-simulation/">
+                    水为什么会炸？我在 FluidSimulation 里跑了两条 SPH 路线
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2022/01/02/hades%E4%BD%9C%E5%BC%8A%E7%AC%94%E8%AE%B0/">
+                    Hades 作弊笔记
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%88%E6%8A%8A%E6%A3%8B%E7%9B%98%E5%8F%98%E6%88%90%E8%83%BD%E8%AE%A1%E7%AE%97%E7%9A%84%E7%8A%B6%E6%80%81"><span class="toc-number">1.</span> <span class="toc-text">先把棋盘变成能计算的状态</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#move%EF%BC%9A%E6%8A%8A%E5%A4%8D%E6%9D%82%E8%A7%84%E5%88%99%E9%9B%86%E4%B8%AD%E5%9C%A8%E4%B8%80%E4%B8%AA%E7%BA%AF%E5%87%BD%E6%95%B0%E9%87%8C"><span class="toc-number">2.</span> <span class="toc-text">move：把复杂规则集中在一个纯函数里</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%9A%E4%B8%BE%E8%80%8C%E4%B8%8D%E6%98%AF%E9%9A%8F%E6%9C%BA%E6%A8%A1%E6%8B%9F"><span class="toc-number">3.</span> <span class="toc-text">枚举而不是随机模拟</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%8D%E6%AC%A1%E7%BB%9F%E8%AE%A1%EF%BC%9A%E5%8F%A0%E6%94%BE%E9%A1%BA%E5%BA%8F%E5%86%B3%E5%AE%9A%E6%9C%80%E5%90%8E%E7%9A%84%E7%AD%94%E6%A1%88"><span class="toc-number">4.</span> <span class="toc-text">名次统计：叠放顺序决定最后的答案</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%80%E5%AE%9A%E8%A6%81%E7%94%A8-Web-Worker"><span class="toc-number">5.</span> <span class="toc-text">为什么一定要用 Web Worker</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B9%B6%E8%A1%8C%E4%B8%8D%E4%BC%9A%E6%94%B9%E5%8F%98%E6%A6%82%E7%8E%87%E6%A8%A1%E5%9E%8B"><span class="toc-number">6.</span> <span class="toc-text">并行不会改变概率模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8A%B6%E6%80%81%E6%A0%91%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E8%BF%85%E9%80%9F%E5%8F%98%E5%A4%A7"><span class="toc-number">7.</span> <span class="toc-text">状态树为什么会迅速变大</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%8E%E6%A0%B7%E7%94%A8%E5%B0%8F%E4%BE%8B%E5%AD%90%E9%AA%8C%E8%AF%81%E8%A7%84%E5%88%99%E6%B2%A1%E6%9C%89%E5%86%99%E5%8F%8D"><span class="toc-number">8.</span> <span class="toc-text">怎样用小例子验证规则没有写反</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E5%B7%A5%E5%85%B7%E7%9A%84%E7%95%8C%E9%9D%A2%E4%B9%9F%E8%A6%81%E5%B0%8A%E9%87%8D%E8%A7%84%E5%88%99"><span class="toc-number">9.</span> <span class="toc-text">浏览器工具的界面也要尊重规则</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%99%E4%B8%AA%E9%A1%B9%E7%9B%AE%E6%9C%80%E5%90%8E%E7%AE%97%E5%87%BA%E6%9D%A5%E7%9A%84%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">10.</span> <span class="toc-text">这个项目最后算出来的是什么</span></a></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+
+    
+        <div class="addthis_inline_share_toolbox"></div>
+    
+</div>
+
+
+
+
+
+
+
+  <div id="gitalk-container"></div>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+  <script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+  <script>
+    var gitalk = new Gitalk({
+      clientID: '35ac28a90389c4f48242',
+      clientSecret: 'a7cdd6e1d21d50615b1f58c232cfb940e1e53b8e',
+      repo: 'Acceyuriko.github.io',
+      owner: 'Acceyuriko',
+      admin: ['Acceyuriko'],
+      id: SparkMD5.hash(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false, // Facebook-like distraction free mode
+      title: 'Gitalk comments',
+    })
+    gitalk.render('gitalk-container')
+  </script>
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2022/05/10/fluid-simulation/" title="上一篇: 水为什么会炸？我在 FluidSimulation 里跑了两条 SPH 路线">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2022/01/02/hades%E4%BD%9C%E5%BC%8A%E7%AC%94%E8%AE%B0/" title="下一篇: Hades 作弊笔记">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2026/08/20/kamijoutouma-quant/">先把数据弄对，再谈收益曲线：我在 KamijouTouma 里搭了一条交易链</a></li><li class="post-list-item"><a class="post-list-link" href="/2026/05/30/anqrwzui-computer-vision/">从一张 640×640 截图开始：anqrwzui 的视觉实验是怎么跑起来的</a></li><li class="post-list-item"><a class="post-list-link" href="/2025/03/02/xiaohei-baimeow/">装修文章也要有自己的家：XiaoHeiBaiMeow 的内容管道和猫咪交互</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/11/14/chunmao-bot/">群里那句“能不能再查一下”，最后长成了 chunmao</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/15/maplecalc/">不想再查表了，于是我做了 MapleCalc</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/06/11/dspyurikoplugin/">把戴森球计划的 Tick 拆开看：一次 Harmony 插件考古</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/05/10/fluid-simulation/">水为什么会炸？我在 FluidSimulation 里跑了两条 SPH 路线</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/01/28/camel-up-state-calculator/">骆驼到底谁更可能赢？我用穷举算了一张桌游概率表</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/01/02/hades%E4%BD%9C%E5%BC%8A%E7%AC%94%E8%AE%B0/">Hades 作弊笔记</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2022-2026 Acceyuriko
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="https://cdn.bootcdn.net/ajax/libs/require.js/2.3.6/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+    <script>
+        var originTitle = document.title;
+        var titleTime;
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                document.title = "(つェ⊂) 我藏好了哦~ " + originTitle;
+                clearTimeout(titleTime);
+            }
+            else {
+                document.title = "(*´∇｀*) 被你发现啦~ " + originTitle;
+                titleTime = setTimeout(function() {
+                    document.title = originTitle;
+                }, 2000);
+            }
+        })
+    </script>
+
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+    <script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-61d98b57938ef42b"></script>
+
+  </div>
+</body>
+</html>

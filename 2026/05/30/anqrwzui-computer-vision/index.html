@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="Acceyuriko" />
+
+
+
+<meta name="description" content="一张屏幕截图要经过哪些步骤，才能变成可解释的检测框、连续目标和可控的实验参数？">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从一张 640×640 截图开始：anqrwzui 的视觉实验是怎么跑起来的">
+<meta property="og:url" content="https://acceyuriko.github.io/2026/05/30/anqrwzui-computer-vision/">
+<meta property="og:site_name" content="Acceyuriko">
+<meta property="og:description" content="一张屏幕截图要经过哪些步骤，才能变成可解释的检测框、连续目标和可控的实验参数？">
+<meta property="og:locale">
+<meta property="article:published_time" content="2026-05-30T09:07:31.000Z">
+<meta property="article:modified_time" content="2026-08-20T11:42:32.466Z">
+<meta property="article:author" content="Acceyuriko">
+<meta property="article:tag" content="CSharp">
+<meta property="article:tag" content="YOLO">
+<meta property="article:tag" content="开源项目">
+<meta property="article:tag" content="计算机视觉">
+<meta name="twitter:card" content="summary">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="Acceyuriko" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="https://cdn.bootcdn.net/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="https://cdn.bootcdn.net/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+
+<link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>从一张 640×640 截图开始：anqrwzui 的视觉实验是怎么跑起来的 | Acceyuriko</title>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/clipboard.js/1.5.10/clipboard.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/spark-md5@3.0.2/spark-md5.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "https://cdn.bootcdn.net/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "https://cdn.bootcdn.net/ajax/libs/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: true
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="https://avatars.githubusercontent.com/u/7571003?v=4" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/"></a></h1>
+        </hgroup>
+
+        
+
+        
+            <form id="search-form">
+            <input type="text" id="local-search-input" name="q" placeholder="search..." class="search form-control" autocomplete="off" autocorrect="off" searchonload="" />
+            <i class="fa fa-times" onclick="resetSearch()"></i>
+            </form>
+            <div id="local-search-result"></div>
+            <p class='no-result'>No results found <i class='fa fa-spinner fa-pulse'></i></p>
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="mailto:Acceyuriko@gmail.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" rel="noopener" href="https://github.com/Acceyuriko" title="GitHub"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/BepInEx/" rel="tag">BepInEx</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CSharp/" rel="tag">CSharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ComputeShader/" rel="tag">ComputeShader</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DOTS/" rel="tag">DOTS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Express/" rel="tag">Express</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Harmony/" rel="tag">Harmony</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Node-js/" rel="tag">Node.js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/React/" rel="tag">React</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rust/" rel="tag">Rust</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SPH/" rel="tag">SPH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TypeScript/" rel="tag">TypeScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Unity/" rel="tag">Unity</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web-Worker/" rel="tag">Web Worker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YOLO/" rel="tag">YOLO</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hades/" rel="tag">hades</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/" rel="tag">开源项目</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E4%BA%BA/" rel="tag">机器人</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E8%AE%A1%E7%AE%97/" rel="tag">概率计算</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B8%B8%E6%88%8F%E5%B7%A5%E5%85%B7/" rel="tag">游戏工具</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="tag">计算机视觉</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%8F%E5%8C%96%E4%BA%A4%E6%98%93/" rel="tag">量化交易</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="https://pages.github.com/">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="http://moxfive.xyz/">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页"></a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="https://avatars.githubusercontent.com/u/7571003?v=4" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页"></a></h1>
+            </hgroup>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:Acceyuriko@gmail.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/Acceyuriko" title="GitHub"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-anqrwzui-computer-vision" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2026/05/30/anqrwzui-computer-vision/" class="article-date">
+      <time datetime="2026-05-30T09:07:31.000Z" itemprop="datePublished">2026-05-30</time>
+</a>
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      从一张 640×640 截图开始：anqrwzui 的视觉实验是怎么跑起来的
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CSharp/" rel="tag">CSharp</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/YOLO/" rel="tag">YOLO</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/" rel="tag">开源项目</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="tag">计算机视觉</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <blockquote>
+<p>本项目仅供个人学习和研究计算机视觉、输入控制等技术之用。请遵守法律法规和游戏服务条款，不要将其用于破坏公平性或违反平台规则的场景。</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://github.com/Acceyuriko/anqrwzui">anqrwzui</a> 是一个 Windows 屏幕感知实验项目。它用 .NET 8.0 WinForms 搭桌面端，用 YOLOv8&#x2F;YOLO11 做目标检测，再把检测结果送进后处理、目标保持和交互控制。项目的乐趣不在于“调用一次模型就结束”，而在于把视频、模型、桌面 UI 和输入设备这些性格完全不同的东西，硬生生接成一条能跑的流水线。中间当然也有不少“为什么 FPS 突然没了”的时刻。<em>(:з」∠)</em></p>
+<p>下面的版本、模型和外设描述都以仓库当前提交里的实现为准：项目包含 .NET 8、ONNX Runtime、<code>yolo11n.pt</code>、<code>best.onnx</code> 和可选的 KM04 &#x2F; <code>gbild64.dll</code> 依赖。模型文件、驱动和 Windows 环境发生变化后，推理设备与性能都需要重新验证，不能只凭这篇文章里的参数推断结果。</p>
+<p>下面只记录技术实验和工程结构，不提供规避游戏规则或破坏公平性的使用方法。视觉模型很有意思，但它应该被用来学习和验证系统，而不是成为别人游戏体验里的坏消息。</p>
+<h2 id="为什么不是先截整张屏幕再说"><a href="#为什么不是先截整张屏幕再说" class="headerlink" title="为什么不是先截整张屏幕再说"></a>为什么不是先截整张屏幕再说</h2><p>实时视觉的第一个敌人通常不是模型，而是数据搬运。整张桌面从 GPU 复制到 CPU，再裁剪、再转换格式，像是把一箱货先搬到楼下，拆出一个苹果，再送回楼上。项目使用 SharpDX 封装 DXGI Desktop Duplication API，只取屏幕中心的 640×640 区域，尽量减少不必要的复制和转换。</p>
+<p>桌面端是 .NET 8 WinForms，截屏、推理、绘制和配置都分成独立组件。这样做的原因很现实：当画面卡顿时，我希望能分别知道是 DXGI 没拿到新帧、ONNX Runtime 推理变慢，还是 UI 重绘拖住了主线程，而不是对着一个“总 FPS”数字发呆。</p>
+<p>推理层优先尝试 CUDA，环境不满足时回退 CPU。这个回退不是为了宣称两种设备速度一样，而是为了让没有 NVIDIA 环境的机器仍然可以验证界面、模型输入输出和后处理逻辑。UI 会显示当前推理设备和 FPS，模型有没有加载成功也不会被藏在一条模糊的异常消息后面。</p>
+<h2 id="从一帧画面到一个检测结果"><a href="#从一帧画面到一个检测结果" class="headerlink" title="从一帧画面到一个检测结果"></a>从一帧画面到一个检测结果</h2><p>主循环可以拆成下面几步：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">DXGI Desktop Duplication</span><br><span class="line">        ↓ 中心 640×640</span><br><span class="line">图像格式转换 / 模型输入张量</span><br><span class="line">        ↓</span><br><span class="line">ONNX Runtime（CUDA 或 CPU）</span><br><span class="line">        ↓</span><br><span class="line">YOLO 输出解析与置信度过滤</span><br><span class="line">        ↓</span><br><span class="line">自身区域过滤 + 目标关联 + 短时保持</span><br><span class="line">        ↓</span><br><span class="line">UI 绘制 / 实验性输入层</span><br></pre></td></tr></table></figure>
+
+<p><code>DxgiScreenCapture</code> 只负责取画面，<code>YoloV8Detector</code> 负责创建 ONNX 会话、准备张量并执行推理，<code>DetectionRenderer</code> 只关心检测框、标签和状态文字怎么画。职责切开以后，换模型时不需要把 WinForms 主窗体改成一团；想比较 CPU 与 CUDA 时，也有明确的计时位置。</p>
+<p>YOLO 输出不是“屏幕上有一个目标”这么简单，它通常包含框坐标、置信度和类别信息。后处理需要把模型坐标映射回 640×640 的画布，按阈值过滤低置信度结果，再处理重叠和目标选择。当前训练管道使用单一 <code>head</code> 类别，因此重点放在目标框稳定性和数据质量，而不是堆很多类别让演示看起来更复杂。</p>
+<h2 id="单帧检测为什么会抖"><a href="#单帧检测为什么会抖" class="headerlink" title="单帧检测为什么会抖"></a>单帧检测为什么会抖</h2><p>单帧模型只知道“这一帧看到了什么”，不知道上一帧的目标是不是同一个。目标刚好被遮挡一帧、置信度掉到阈值下面、或者检测框中心轻微漂移时，如果每帧都从零开始，结果就会闪烁得像坏掉的霓虹灯。</p>
+<p>项目在检测后加入了目标保持和距离容错。目标短暂消失时，<code>HoldFrames</code> 保留之前的状态；目标重新出现后，<code>AssociationDistanceRatio</code> 用相对距离判断它是否还能和上一帧关联。<code>MaxOffsetRatio</code> 则限制目标偏移范围，避免一个突然出现的远处框被错误地接管成当前目标。</p>
+<p>这不是完整的多目标跟踪算法，也不是为了包装一个更酷的名词，而是针对实验场景做的最小连续性补丁：让偶发漏检不要立即变成大幅跳动，让参数变化对轨迹的影响可以被观察和复现。</p>
+<h2 id="为什么用弹簧—阻尼模型表达移动"><a href="#为什么用弹簧—阻尼模型表达移动" class="headerlink" title="为什么用弹簧—阻尼模型表达移动"></a>为什么用弹簧—阻尼模型表达移动</h2><p>最简单的控制方式是把当前偏移量直接乘一个比例，或者把指针瞬移到目标中心。前者在参数不合适时会抖，后者则完全不像一个连续系统。项目使用质量—弹簧—阻尼模型，把目标偏移量转换成带有惯性、加速度和缓冲的运动。</p>
+<p>可以把它想象成一个被橡皮筋牵引的小物体：弹簧负责把它拉向目标，阻尼负责消除过冲，质量决定它对变化有多“迟钝”。这样的模型更适合做控制实验，因为刚度、阻尼和最大偏移都能独立调整，轨迹的变化也更容易解释。</p>
+<p>相关参数放在 <code>Config/config.json</code>，并由 <code>FileSystemWatcher</code> 监听变化，UI 还提供了部分调节入口。修改配置后不必重新编译，就能对比“更快但更容易过冲”和“更稳但响应更慢”的效果。当然，所有输入控制都应该在合法、合规和不会影响他人的场景中进行验证。</p>
+<h2 id="数据集管道：模型训练前才是时间黑洞"><a href="#数据集管道：模型训练前才是时间黑洞" class="headerlink" title="数据集管道：模型训练前才是时间黑洞"></a>数据集管道：模型训练前才是时间黑洞</h2><p><code>YoloTrain/</code> 目录包含从视频到模型的训练流程。大致过程是：用 FFmpeg 按步长抽取中心画面，使用 Label Studio 做标注，把标注转换为 YOLO 数据格式，再通过 Ultralytics 训练并导出 ONNX。模型最终要回到本地桌面应用里验证，所以训练输出和推理输入必须保持尺寸、类别和坐标约定一致。</p>
+<p>当前训练配置使用预训练的 <code>yolo11n.pt</code>，单一 <code>head</code> 类别，训练 200 个 Epoch、Batch Size 16，并导出 FP16 ONNX 模型。这个数字本身并不代表“训练得越久越好”，真正影响结果的往往是样本是否覆盖不同背景、目标大小、遮挡和光照，以及标注框有没有一致地贴住目标。</p>
+<p>项目针对稀疏目标场景关闭 Mosaic 和 MixUp。通用目标检测增强并不总适合每一种输入：拼接或混合后的画面可能让模型见到训练时从未存在过的空间关系，反而干扰小目标定位。这里更重要的是比较 loss、mAP 和实际漏检情况，而不是只盯着一次训练的最高数字。</p>
+<h2 id="把“自己”从候选目标里排除"><a href="#把“自己”从候选目标里排除" class="headerlink" title="把“自己”从候选目标里排除"></a>把“自己”从候选目标里排除</h2><p>屏幕视觉还有一个很具体的麻烦：画面里的自身角色、UI 元素或其他固定区域可能长得很像目标。项目提供底部区域过滤和比例参数，让实验可以排除一部分已知的自身区域。它不是万能的语义分割，但比把误检全部甩给模型要诚实得多。</p>
+<p>当过滤范围、检测阈值、保持帧数和关联距离都可以热更新时，调试过程就从“改代码—编译—重新启动—希望这次好了”变成了可记录的对照实验。参数不一定会带来完美结果，却能告诉我失败发生在召回率不足、关联太严格，还是画面区域根本没有被正确截取。</p>
+<h2 id="性能问题要拆成三段看"><a href="#性能问题要拆成三段看" class="headerlink" title="性能问题要拆成三段看"></a>性能问题要拆成三段看</h2><p>项目里的“实时”并不是一个单独的开关，而是截屏、推理和绘制三段时间加起来的结果。DXGI 负责把最新桌面帧交给程序；ONNX Runtime 把 640×640 图像转换成模型张量并执行网络；WinForms 再把检测框、FPS、设备状态和调试信息画出来。任何一段阻塞，最终看到的都是低 FPS。</p>
+<p>所以排查时不能只盯着模型大小。截屏区域过大，会增加复制和格式转换；模型输入没有复用缓冲区，会增加分配压力；UI 线程如果在等待推理，画面即使已经拿到新帧也无法及时显示。项目把 <code>DxgiScreenCapture</code>、<code>YoloV8Detector</code> 和 <code>DetectionRenderer</code> 分开，正是为了让每一段可以单独计时和替换。</p>
+<p>CUDA 与 CPU 回退也应该被当成两种运行模式，而不是“一个快一点，一个慢一点”。CUDA 环境需要正确的 ONNX Runtime provider、驱动和模型格式；CPU 模式则更适合验证功能和排查结果。先保证同一输入在两种设备上都能得到结构一致的框，再去比较吞吐量，通常比一上来追 FPS 更有效。</p>
+<h2 id="模型输出之后，才是应用自己的判断"><a href="#模型输出之后，才是应用自己的判断" class="headerlink" title="模型输出之后，才是应用自己的判断"></a>模型输出之后，才是应用自己的判断</h2><p>YOLO 给出的通常是候选框、置信度和类别，应用还要决定哪些框值得留下、如何映射坐标、如何排除已知区域，以及如何与上一帧建立关系。这个阶段不应该被描述成“模型已经看懂了屏幕”：它仍然只是一个带不确定性的候选生成器。</p>
+<p>例如，低置信度过滤提高精度时可能损失召回率；关联距离太小会把同一个目标误判成新目标，太大又可能把两个不同目标串在一起；保持帧数太长会让目标消失后仍然残留，太短则会让轨迹闪烁。把这些参数拆出来，才有可能针对具体失败案例逐个调整，而不是反复更换模型。</p>
+<p>配置文件的热重载还带来一个小但重要的好处：实验结果可以和参数一起记录。哪怕最终没有得到理想效果，也能知道当时使用了什么阈值、保持了多少帧、关联半径是多少。可复现比“我记得那次好像挺稳”可靠多了。</p>
+<h2 id="输入层的边界必须写在文章里"><a href="#输入层的边界必须写在文章里" class="headerlink" title="输入层的边界必须写在文章里"></a>输入层的边界必须写在文章里</h2><p>项目通过全局鼠标钩子读取状态，输入控制封装在 <code>MouseController</code> 中，优先调用 <code>gbild64.dll</code> 对接 KM04 设备，没有设备时回退 Windows <code>SendInput</code>。把硬件调用放在单独一层，是为了让检测模块可以脱离具体外设测试，也让输入权限和设备依赖不会悄悄渗进模型代码。</p>
+<p>但技术上能做到，不等于应该在任何地方使用。这个项目保留学习研究声明，是因为屏幕检测和自动输入很容易越过公平与服务条款的边界。最适合它的场景是离线素材分析、自己的测试窗口、模型性能实验和输入系统研究；涉及在线游戏或他人服务时，请遵守法律、平台规则和游戏条款。</p>
+<h2 id="这个项目真正教会我的事"><a href="#这个项目真正教会我的事" class="headerlink" title="这个项目真正教会我的事"></a>这个项目真正教会我的事</h2><p>anqrwzui 让我意识到，计算机视觉落地不是“训练一个 YOLO，然后把 DLL 扔进程序”这么直线。输入画面要稳定，模型格式要对齐，推理设备要能回退，后处理要解释得通，目标关联要处理丢帧，控制层还要有明确的使用边界。</p>
+<p>当这些环节都被拆开，项目就不只是一个能画框的 Demo，而是一张小型的工程地图：数据如何进入、模型如何判断、程序如何承认不确定性，以及人应该在哪一步按下停止键。后面还可以继续优化性能和跟踪策略，但先把每个失败都看清楚，已经很值得了。ヽ(•̀ω•́ )ゝ</p>
+<h2 id="如果要继续做，我会先补什么"><a href="#如果要继续做，我会先补什么" class="headerlink" title="如果要继续做，我会先补什么"></a>如果要继续做，我会先补什么</h2><p>下一步最值得补的不是“再加一种更大的模型”，而是更系统的离线评估：固定一批带标注的 640×640 帧，分别统计漏检、误检、目标关联断裂和端到端延迟。这样模型指标、后处理指标和设备性能指标不会混成一个模糊的“手感”。</p>
+<p>还可以把截屏、推理和后处理的耗时写入结构化日志，在 GPU &#x2F; CPU、不同分辨率和不同刷新频率下做对照。模型实验最后要回到数据和测量，不能永远靠肉眼看框有没有抖。至于输入控制部分，仍然应该只在合法、离线、自己拥有的测试环境中验证，边界不能因为技术细节写得更漂亮就消失。</p>
+<p>项目地址：<a target="_blank" rel="noopener" href="https://github.com/Acceyuriko/anqrwzui">github.com&#x2F;Acceyuriko&#x2F;anqrwzui</a></p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2026/05/30/anqrwzui-computer-vision/">从一张 640×640 截图开始：anqrwzui 的视觉实验是怎么跑起来的</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页"></a></p>
+        <p><span>发布时间:</span>2026-05-30, 17:07:31</p>
+        <p><span>最后更新:</span>2026-08-20, 11:42:32</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2026/05/30/anqrwzui-computer-vision/" title="从一张 640×640 截图开始：anqrwzui 的视觉实验是怎么跑起来的">https://acceyuriko.github.io/2026/05/30/anqrwzui-computer-vision/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://acceyuriko.github.io/2026/05/30/anqrwzui-computer-vision/　　作者: " title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2026/08/20/kamijoutouma-quant/">
+                    先把数据弄对，再谈收益曲线：我在 KamijouTouma 里搭了一条交易链
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2025/03/02/xiaohei-baimeow/">
+                    装修文章也要有自己的家：XiaoHeiBaiMeow 的内容管道和猫咪交互
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E6%98%AF%E5%85%88%E6%88%AA%E6%95%B4%E5%BC%A0%E5%B1%8F%E5%B9%95%E5%86%8D%E8%AF%B4"><span class="toc-number">1.</span> <span class="toc-text">为什么不是先截整张屏幕再说</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8E%E4%B8%80%E5%B8%A7%E7%94%BB%E9%9D%A2%E5%88%B0%E4%B8%80%E4%B8%AA%E6%A3%80%E6%B5%8B%E7%BB%93%E6%9E%9C"><span class="toc-number">2.</span> <span class="toc-text">从一帧画面到一个检测结果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%95%E5%B8%A7%E6%A3%80%E6%B5%8B%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E6%8A%96"><span class="toc-number">3.</span> <span class="toc-text">单帧检测为什么会抖</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8%E5%BC%B9%E7%B0%A7%E2%80%94%E9%98%BB%E5%B0%BC%E6%A8%A1%E5%9E%8B%E8%A1%A8%E8%BE%BE%E7%A7%BB%E5%8A%A8"><span class="toc-number">4.</span> <span class="toc-text">为什么用弹簧—阻尼模型表达移动</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E9%9B%86%E7%AE%A1%E9%81%93%EF%BC%9A%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83%E5%89%8D%E6%89%8D%E6%98%AF%E6%97%B6%E9%97%B4%E9%BB%91%E6%B4%9E"><span class="toc-number">5.</span> <span class="toc-text">数据集管道：模型训练前才是时间黑洞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8A%8A%E2%80%9C%E8%87%AA%E5%B7%B1%E2%80%9D%E4%BB%8E%E5%80%99%E9%80%89%E7%9B%AE%E6%A0%87%E9%87%8C%E6%8E%92%E9%99%A4"><span class="toc-number">6.</span> <span class="toc-text">把“自己”从候选目标里排除</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98%E8%A6%81%E6%8B%86%E6%88%90%E4%B8%89%E6%AE%B5%E7%9C%8B"><span class="toc-number">7.</span> <span class="toc-text">性能问题要拆成三段看</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A8%A1%E5%9E%8B%E8%BE%93%E5%87%BA%E4%B9%8B%E5%90%8E%EF%BC%8C%E6%89%8D%E6%98%AF%E5%BA%94%E7%94%A8%E8%87%AA%E5%B7%B1%E7%9A%84%E5%88%A4%E6%96%AD"><span class="toc-number">8.</span> <span class="toc-text">模型输出之后，才是应用自己的判断</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BE%93%E5%85%A5%E5%B1%82%E7%9A%84%E8%BE%B9%E7%95%8C%E5%BF%85%E9%A1%BB%E5%86%99%E5%9C%A8%E6%96%87%E7%AB%A0%E9%87%8C"><span class="toc-number">9.</span> <span class="toc-text">输入层的边界必须写在文章里</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%99%E4%B8%AA%E9%A1%B9%E7%9B%AE%E7%9C%9F%E6%AD%A3%E6%95%99%E4%BC%9A%E6%88%91%E7%9A%84%E4%BA%8B"><span class="toc-number">10.</span> <span class="toc-text">这个项目真正教会我的事</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E8%A6%81%E7%BB%A7%E7%BB%AD%E5%81%9A%EF%BC%8C%E6%88%91%E4%BC%9A%E5%85%88%E8%A1%A5%E4%BB%80%E4%B9%88"><span class="toc-number">11.</span> <span class="toc-text">如果要继续做，我会先补什么</span></a></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+
+    
+        <div class="addthis_inline_share_toolbox"></div>
+    
+</div>
+
+
+
+
+
+
+
+  <div id="gitalk-container"></div>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+  <script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+  <script>
+    var gitalk = new Gitalk({
+      clientID: '35ac28a90389c4f48242',
+      clientSecret: 'a7cdd6e1d21d50615b1f58c232cfb940e1e53b8e',
+      repo: 'Acceyuriko.github.io',
+      owner: 'Acceyuriko',
+      admin: ['Acceyuriko'],
+      id: SparkMD5.hash(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false, // Facebook-like distraction free mode
+      title: 'Gitalk comments',
+    })
+    gitalk.render('gitalk-container')
+  </script>
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2026/08/20/kamijoutouma-quant/" title="上一篇: 先把数据弄对，再谈收益曲线：我在 KamijouTouma 里搭了一条交易链">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2025/03/02/xiaohei-baimeow/" title="下一篇: 装修文章也要有自己的家：XiaoHeiBaiMeow 的内容管道和猫咪交互">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2026/08/20/kamijoutouma-quant/">先把数据弄对，再谈收益曲线：我在 KamijouTouma 里搭了一条交易链</a></li><li class="post-list-item"><a class="post-list-link" href="/2026/05/30/anqrwzui-computer-vision/">从一张 640×640 截图开始：anqrwzui 的视觉实验是怎么跑起来的</a></li><li class="post-list-item"><a class="post-list-link" href="/2025/03/02/xiaohei-baimeow/">装修文章也要有自己的家：XiaoHeiBaiMeow 的内容管道和猫咪交互</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/11/14/chunmao-bot/">群里那句“能不能再查一下”，最后长成了 chunmao</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/15/maplecalc/">不想再查表了，于是我做了 MapleCalc</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/06/11/dspyurikoplugin/">把戴森球计划的 Tick 拆开看：一次 Harmony 插件考古</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/05/10/fluid-simulation/">水为什么会炸？我在 FluidSimulation 里跑了两条 SPH 路线</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/01/28/camel-up-state-calculator/">骆驼到底谁更可能赢？我用穷举算了一张桌游概率表</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/01/02/hades%E4%BD%9C%E5%BC%8A%E7%AC%94%E8%AE%B0/">Hades 作弊笔记</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2022-2026 Acceyuriko
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="https://cdn.bootcdn.net/ajax/libs/require.js/2.3.6/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+    <script>
+        var originTitle = document.title;
+        var titleTime;
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                document.title = "(つェ⊂) 我藏好了哦~ " + originTitle;
+                clearTimeout(titleTime);
+            }
+            else {
+                document.title = "(*´∇｀*) 被你发现啦~ " + originTitle;
+                titleTime = setTimeout(function() {
+                    document.title = originTitle;
+                }, 2000);
+            }
+        })
+    </script>
+
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+    <script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-61d98b57938ef42b"></script>
+
+  </div>
+</body>
+</html>

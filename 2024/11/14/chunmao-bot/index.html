@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="Acceyuriko" />
+
+
+
+<meta name="description" content="一个群聊机器人如何处理重复事件、模糊问答、图片消息、数据库状态，以及 QQNT 平台变化？">
+<meta property="og:type" content="article">
+<meta property="og:title" content="群里那句“能不能再查一下”，最后长成了 chunmao">
+<meta property="og:url" content="https://acceyuriko.github.io/2024/11/14/chunmao-bot/">
+<meta property="og:site_name" content="Acceyuriko">
+<meta property="og:description" content="一个群聊机器人如何处理重复事件、模糊问答、图片消息、数据库状态，以及 QQNT 平台变化？">
+<meta property="og:locale">
+<meta property="article:published_time" content="2024-11-14T15:30:10.000Z">
+<meta property="article:modified_time" content="2026-08-20T11:42:32.466Z">
+<meta property="article:author" content="Acceyuriko">
+<meta property="article:tag" content="Express">
+<meta property="article:tag" content="Node.js">
+<meta property="article:tag" content="开源项目">
+<meta property="article:tag" content="机器人">
+<meta name="twitter:card" content="summary">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="Acceyuriko" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="https://cdn.bootcdn.net/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="https://cdn.bootcdn.net/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+
+<link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>群里那句“能不能再查一下”，最后长成了 chunmao | Acceyuriko</title>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/clipboard.js/1.5.10/clipboard.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/spark-md5@3.0.2/spark-md5.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "https://cdn.bootcdn.net/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "https://cdn.bootcdn.net/ajax/libs/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: true
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="https://avatars.githubusercontent.com/u/7571003?v=4" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/"></a></h1>
+        </hgroup>
+
+        
+
+        
+            <form id="search-form">
+            <input type="text" id="local-search-input" name="q" placeholder="search..." class="search form-control" autocomplete="off" autocorrect="off" searchonload="" />
+            <i class="fa fa-times" onclick="resetSearch()"></i>
+            </form>
+            <div id="local-search-result"></div>
+            <p class='no-result'>No results found <i class='fa fa-spinner fa-pulse'></i></p>
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="mailto:Acceyuriko@gmail.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" rel="noopener" href="https://github.com/Acceyuriko" title="GitHub"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/BepInEx/" rel="tag">BepInEx</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CSharp/" rel="tag">CSharp</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ComputeShader/" rel="tag">ComputeShader</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DOTS/" rel="tag">DOTS</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Express/" rel="tag">Express</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Harmony/" rel="tag">Harmony</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Node-js/" rel="tag">Node.js</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/React/" rel="tag">React</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rust/" rel="tag">Rust</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SPH/" rel="tag">SPH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TypeScript/" rel="tag">TypeScript</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Unity/" rel="tag">Unity</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web-Worker/" rel="tag">Web Worker</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/YOLO/" rel="tag">YOLO</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hades/" rel="tag">hades</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/" rel="tag">开源项目</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E4%BA%BA/" rel="tag">机器人</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A6%82%E7%8E%87%E8%AE%A1%E7%AE%97/" rel="tag">概率计算</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B8%B8%E6%88%8F%E5%B7%A5%E5%85%B7/" rel="tag">游戏工具</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="tag">计算机视觉</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%8F%E5%8C%96%E4%BA%A4%E6%98%93/" rel="tag">量化交易</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="https://pages.github.com/">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="http://moxfive.xyz/">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页"></a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="https://avatars.githubusercontent.com/u/7571003?v=4" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页"></a></h1>
+            </hgroup>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:Acceyuriko@gmail.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/Acceyuriko" title="GitHub"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-chunmao-bot" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2024/11/14/chunmao-bot/" class="article-date">
+      <time datetime="2024-11-14T15:30:10.000Z" itemprop="datePublished">2024-11-14</time>
+</a>
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      群里那句“能不能再查一下”，最后长成了 chunmao
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Express/" rel="tag">Express</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Node-js/" rel="tag">Node.js</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE/" rel="tag">开源项目</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E4%BA%BA/" rel="tag">机器人</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p><a target="_blank" rel="noopener" href="https://github.com/Acceyuriko/chunmao">chunmao</a> 是一个运行在群聊消息链路上的机器人服务。它最初大概属于那种“这个小功能顺手加一下”的项目，后来小功能们互相拉帮结派，欢迎语、问答、复读、周报、角色查询、车车流程和图片生成全都住了进来。于是问题变成了：怎样让它继续加功能，却不把整个机器人变成一条巨大的 <code>if...else</code>？</p>
+<p>我最后选择把它拆成接入、分发、数据模型、定时任务和外部服务几个层次。它不算庞大的平台，但足够完整地展示了一个群聊机器人最容易踩到的坑：重复事件、平台差异、异步回调、半截失败和“文字能说清，图片更适合发出来”的产品取舍。<em>(:з」∠)</em></p>
+<h2 id="一条消息的旅程"><a href="#一条消息的旅程" class="headerlink" title="一条消息的旅程"></a>一条消息的旅程</h2><p>服务使用 Express 提供 <code>/notify</code> 接口，接收 OneBot 风格的事件。收到请求后，消息服务先确认事件是不是自己发出的，再检查黑名单、消息类型和是否已经处理过，最后才进入命令匹配和业务逻辑。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">OneBot 事件</span><br><span class="line">    ↓ POST /notify</span><br><span class="line">Express 路由 / MessageService</span><br><span class="line">    ├─ 事件去重、机器人自身过滤、黑名单</span><br><span class="line">    ├─ @ / 名称 / 命令前缀判断</span><br><span class="line">    ├─ Sequelize / SQLite 查询与更新</span><br><span class="line">    ├─ 外部接口或 Puppeteer 图片渲染</span><br><span class="line">    └─ 定时统计与业务状态</span><br><span class="line">    ↓</span><br><span class="line">CQ HTTP API → send_group_msg → 群聊</span><br></pre></td></tr></table></figure>
+
+<p>最后的发送通过 CQ HTTP API 完成。业务层不需要直接操作 QQ 客户端，只需要构造文本、@、图片等消息段；入口层负责调用 <code>send_group_msg</code>。这层抽象看起来薄薄的，却让命令逻辑不会被某个具体 QQ 客户端的调用方式绑死。</p>
+<h2 id="群消息不是普通的-HTTP-请求"><a href="#群消息不是普通的-HTTP-请求" class="headerlink" title="群消息不是普通的 HTTP 请求"></a>群消息不是普通的 HTTP 请求</h2><p>HTTP 接口很容易让人产生一种错觉：请求来了，函数执行完，事情就结束了。群聊环境完全不是这样。上游可能重试同一个事件，机器人可能收到自己刚刚发出的消息，群友可能同时触发多个耗时操作，某个外部 API 也可能在图片已经生成一半时超时。</p>
+<p><code>MessageService.handle</code> 会维护最近处理过的消息 ID，最多保留约 1024 条，用来避免同一事件重复消费。它还会根据 <code>post_type</code> 和消息子类型判断这是普通群消息、入群通知、发送回执，还是其他事件，不会把所有事件都当作“有人说了一句话”。</p>
+<p>过滤顺序也很有讲究：先做不需要数据库的便宜判断，再做命令匹配，之后才进入数据库查询和外部请求，最后才启动 Puppeteer 这种成本更高的操作。这样至少不会因为一条机器人自己的回执，启动一整个浏览器进程。机器人开发里很少有真正的魔法，更多是把昂贵的事情尽可能往后放。</p>
+<h2 id="触发方式：既要明确，也要允许一点松弛"><a href="#触发方式：既要明确，也要允许一点松弛" class="headerlink" title="触发方式：既要明确，也要允许一点松弛"></a>触发方式：既要明确，也要允许一点松弛</h2><p>命令可以通过机器人名称或 @ 触发，进入明确的命令分支；部分问答则允许不加前缀，直接查询 <code>MsgNoPrefix</code>。问答匹配不是只做完全相等，还会进行包含匹配和 Levenshtein 距离判断，群友不必每次都精准复刻数据库里的原句。</p>
+<p>这种“确定入口 + 有限模糊”的组合比较适合群聊：会改变数据或触发复杂动作的命令需要明显的触发方式，轻量问答可以稍微宽松一点。模糊匹配的范围不能无限放大，否则机器人会变成一个过于热心、到处插话的群成员——而且还是无法禁言的那种。</p>
+<p>当前命令包括欢迎消息、角色和联盟查询、绑定信息、问答学习、星力查询、复读统计、复读周报，以及“叫车、发车、到站”等群内流程。不同命令背后连接的模型和外部服务各不相同，统一入口的价值就在于让它们共享过滤、日志和错误处理，而不是共享一锅粥。</p>
+<h2 id="SQLite-和-Sequelize：小机器人也需要数据边界"><a href="#SQLite-和-Sequelize：小机器人也需要数据边界" class="headerlink" title="SQLite 和 Sequelize：小机器人也需要数据边界"></a>SQLite 和 Sequelize：小机器人也需要数据边界</h2><p>项目使用 Sequelize、<code>sequelize-typescript</code> 和 SQLite。模型分别覆盖消息问答、无前缀问答、复读消息、复读用户、排行信息和车队状态等数据；<code>migrations/</code> 记录表结构变化和唯一约束，避免每次升级都靠手动改数据库。</p>
+<p>复读功能尤其能说明“状态”和“事件”的区别。它不是简单地看到同一段文字就加一，服务需要按群保存消息序列，并确认是不是不同成员连续重复；相同成员连续发出的内容不能和多人接龙混为一谈。<code>task.service</code> 再按 ISO 周统计最长复读链和成员排行，生成周报。</p>
+<p>数据落库后，Node 进程重启并不会把历史清空。对于一个看似玩具的群机器人来说，这已经很重要：今天的复读榜、上周的问答和当前车队状态，都不应该因为进程更新就凭空失忆。</p>
+<h2 id="文字说不清的时候，让-Puppeteer-出场"><a href="#文字说不清的时候，让-Puppeteer-出场" class="headerlink" title="文字说不清的时候，让 Puppeteer 出场"></a>文字说不清的时候，让 Puppeteer 出场</h2><p>角色排行、联盟信息和周报如果全部塞在一条长消息里，群里很快就会变成一堵字墙。<code>draw.service</code> 使用 Puppeteer 打开 HTML 模板并截图，把表格、排行、时间和装饰统一排版成图片，再由 <code>message.service</code> 组装 CQ 图片消息。</p>
+<p>这里的关键是把数据和视觉分开：业务服务负责查询“谁排第几”，模板负责“第几名应该长什么样”。如果以后要改颜色、增加字段或适配手机宽度，不需要回头改命令解析器。代价也很明确：启动浏览器比拼一段字符串重，页面渲染失败时还要记录临时文件和错误上下文，所以这类能力应该放在真正需要它的命令里。</p>
+<h2 id="当-OneBot-不再是唯一入口"><a href="#当-OneBot-不再是唯一入口" class="headerlink" title="当 OneBot 不再是唯一入口"></a>当 OneBot 不再是唯一入口</h2><p>QQ 侧的接入方式变化后，我又做了 <a target="_blank" rel="noopener" href="https://github.com/Acceyuriko/chunmao-ll">chunmao-ll</a>，作为 LiteLoaderQQNT &#x2F; Electron 适配层。它在 Electron 主进程中 Hook QQNT 消息事件，把 QQNT 的文本、@ 和图片元素转换回机器人熟悉的 CQ 风格；机器人发送消息时，再把 CQ 消息转换成 QQNT 的消息元素。</p>
+<p>两个服务通过本地 HTTP 保持边界：插件监听 5700 端口，原机器人继续在 6624 端口接收通知。这样平台变化被压缩到适配器里，chunmao 的问答、复读和统计逻辑无需跟着 QQNT 的内部事件结构一起重写。</p>
+<p>适配器需要处理的细节比“把文本转发一下”多得多。图片要通过 QQNT 文件 API 获取类型、MD5 和目标路径；@ 消息要结合群成员缓存映射账号信息；异步 <code>ntCall</code> 的返回值要通过 UUID 放入待处理 IPC 回调表，再交给发起请求的逻辑。插件还提供 <code>/send_group_msg</code> 和 <code>/get_group_member_list</code> 等本地 Express 接口，继续模拟原有的 CQ HTTP 边界。</p>
+<h2 id="如果我要再加一个命令，会先经过什么"><a href="#如果我要再加一个命令，会先经过什么" class="headerlink" title="如果我要再加一个命令，会先经过什么"></a>如果我要再加一个命令，会先经过什么</h2><p>一个新命令通常要经过这条小流程：先确定触发方式，再定义输入和权限；然后决定是否需要新模型或迁移；接着把业务逻辑放进服务层，最后把返回结果转换成文本、@ 或图片消息。看起来只是“加一个分支”，实际上还要考虑重复事件、数据库失败、外部 API 超时和消息发送失败。</p>
+<p>我会尽量让命令处理函数保持短一些，把查询、统计和图片渲染拆到各自的 service。入口层只做识别和编排，模型层只关心数据，<code>cq.service</code> 只负责和发送接口说话。这样新增命令时，修改范围可以被限制在几个清楚的文件里，不会因为一个周报功能改坏欢迎消息。</p>
+<p>命令的返回值也最好先形成一个内部消息结构，再在最后一步转换为 CQ 段。纯文本、@、图片和多个消息段的差异就不会散落在每个命令里；以后更换接入适配器时，也只需要重写转换层。</p>
+<h2 id="去重不是“存一个-ID”这么简单"><a href="#去重不是“存一个-ID”这么简单" class="headerlink" title="去重不是“存一个 ID”这么简单"></a>去重不是“存一个 ID”这么简单</h2><p>消息 ID 的缓存解决的是短时间重复投递，但它不能替代业务幂等。比如一条学习问答可能已经写入数据库，却在发送回复前进程崩溃；上游重试后，第二次请求应该避免再次插入同一条学习记录，同时又要决定是否重新发送回复。</p>
+<p>因此可以把处理过程分成“收到事件、完成业务写入、生成回复、发送回复”几个阶段记录。内存里的最近 ID 适合挡住普通重复事件，数据库里的唯一约束和业务状态则负责更长生命周期的重复。机器人越往后加功能，越需要区分这两层，不然一次网络抖动就可能变成两条记录、两张图片和两份周报。</p>
+<h2 id="日志和错误：失败也要能被看见"><a href="#日志和错误：失败也要能被看见" class="headerlink" title="日志和错误：失败也要能被看见"></a>日志和错误：失败也要能被看见</h2><p>Webhook 处理经过 Express 错误中间件，异常写入 Winston 日志，并返回 500，让上游知道这次处理没有完成。这个返回码很重要：如果渲染失败却返回成功，上游可能不会重试，群里也只会安静地少一条结果；如果所有错误都吞掉，排查时就只能问“刚才是不是没反应”。</p>
+<p>当然，返回 500 也不是万能的。一个消息是否已经写入数据库、图片是否已经落盘、发送 API 是否成功，都需要在日志和状态设计里说清楚。对于异步机器人，真正麻烦的往往不是抛出异常，而是异常发生在“已经做了一半”的时候。</p>
+<h2 id="我为什么还觉得这个项目有意思"><a href="#我为什么还觉得这个项目有意思" class="headerlink" title="我为什么还觉得这个项目有意思"></a>我为什么还觉得这个项目有意思</h2><p>chunmao 不是一个宏大的 AI 平台，它更像一个群聊生活的缩影：需求来自一句随口的“能不能查一下”，最后却会碰到数据库迁移、幂等、模糊匹配、浏览器渲染、平台适配和异步协议。把这些小问题一个个收好，才让机器人从“能回复”变成“可以长期运行”。</p>
+<p>如果以后再加功能，我最希望继续保持的不是命令数量，而是每个功能都能说清楚自己的输入、状态、输出和失败方式。至于群里会不会因此更热闹——这个就交给群友决定啦 (｀・ω・´)</p>
+<h2 id="平台适配真正隔离的是什么"><a href="#平台适配真正隔离的是什么" class="headerlink" title="平台适配真正隔离的是什么"></a>平台适配真正隔离的是什么</h2><p><code>chunmao-ll</code> 的价值不只是“把 QQNT 消息转发到 5700 端口”。它把平台内部事件、消息元素、文件路径和 IPC 回调，翻译成机器人已经理解的 HTTP &#x2F; CQ 语义。换平台时变化的是适配器，不是“复读统计按周计算”这类业务规则。</p>
+<p>这个边界也让故障更容易定位：如果 <code>/notify</code> 根本没有收到请求，先看插件事件 Hook 和本地 HTTP；如果请求到了但没有回复，再看 <code>MessageService</code>、数据库或外部渲染；如果回复创建成功却发不出去，最后检查 CQ API 和 QQNT 的发送转换。把问题按边界分层，群里那句“机器人又没反应了”才有机会变成可执行的排查步骤。</p>
+<p>项目地址：<a target="_blank" rel="noopener" href="https://github.com/Acceyuriko/chunmao">github.com&#x2F;Acceyuriko&#x2F;chunmao</a>，QQNT 适配插件见 <a target="_blank" rel="noopener" href="https://github.com/Acceyuriko/chunmao-ll">github.com&#x2F;Acceyuriko&#x2F;chunmao-ll</a>。</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2024/11/14/chunmao-bot/">群里那句“能不能再查一下”，最后长成了 chunmao</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页"></a></p>
+        <p><span>发布时间:</span>2024-11-14, 23:30:10</p>
+        <p><span>最后更新:</span>2026-08-20, 11:42:32</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2024/11/14/chunmao-bot/" title="群里那句“能不能再查一下”，最后长成了 chunmao">https://acceyuriko.github.io/2024/11/14/chunmao-bot/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://acceyuriko.github.io/2024/11/14/chunmao-bot/　　作者: " title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2025/03/02/xiaohei-baimeow/">
+                    装修文章也要有自己的家：XiaoHeiBaiMeow 的内容管道和猫咪交互
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2023/10/15/maplecalc/">
+                    不想再查表了，于是我做了 MapleCalc
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E6%9D%A1%E6%B6%88%E6%81%AF%E7%9A%84%E6%97%85%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">一条消息的旅程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BE%A4%E6%B6%88%E6%81%AF%E4%B8%8D%E6%98%AF%E6%99%AE%E9%80%9A%E7%9A%84-HTTP-%E8%AF%B7%E6%B1%82"><span class="toc-number">2.</span> <span class="toc-text">群消息不是普通的 HTTP 请求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A6%E5%8F%91%E6%96%B9%E5%BC%8F%EF%BC%9A%E6%97%A2%E8%A6%81%E6%98%8E%E7%A1%AE%EF%BC%8C%E4%B9%9F%E8%A6%81%E5%85%81%E8%AE%B8%E4%B8%80%E7%82%B9%E6%9D%BE%E5%BC%9B"><span class="toc-number">3.</span> <span class="toc-text">触发方式：既要明确，也要允许一点松弛</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SQLite-%E5%92%8C-Sequelize%EF%BC%9A%E5%B0%8F%E6%9C%BA%E5%99%A8%E4%BA%BA%E4%B9%9F%E9%9C%80%E8%A6%81%E6%95%B0%E6%8D%AE%E8%BE%B9%E7%95%8C"><span class="toc-number">4.</span> <span class="toc-text">SQLite 和 Sequelize：小机器人也需要数据边界</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%87%E5%AD%97%E8%AF%B4%E4%B8%8D%E6%B8%85%E7%9A%84%E6%97%B6%E5%80%99%EF%BC%8C%E8%AE%A9-Puppeteer-%E5%87%BA%E5%9C%BA"><span class="toc-number">5.</span> <span class="toc-text">文字说不清的时候，让 Puppeteer 出场</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BD%93-OneBot-%E4%B8%8D%E5%86%8D%E6%98%AF%E5%94%AF%E4%B8%80%E5%85%A5%E5%8F%A3"><span class="toc-number">6.</span> <span class="toc-text">当 OneBot 不再是唯一入口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E6%88%91%E8%A6%81%E5%86%8D%E5%8A%A0%E4%B8%80%E4%B8%AA%E5%91%BD%E4%BB%A4%EF%BC%8C%E4%BC%9A%E5%85%88%E7%BB%8F%E8%BF%87%E4%BB%80%E4%B9%88"><span class="toc-number">7.</span> <span class="toc-text">如果我要再加一个命令，会先经过什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%BB%E9%87%8D%E4%B8%8D%E6%98%AF%E2%80%9C%E5%AD%98%E4%B8%80%E4%B8%AA-ID%E2%80%9D%E8%BF%99%E4%B9%88%E7%AE%80%E5%8D%95"><span class="toc-number">8.</span> <span class="toc-text">去重不是“存一个 ID”这么简单</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%97%A5%E5%BF%97%E5%92%8C%E9%94%99%E8%AF%AF%EF%BC%9A%E5%A4%B1%E8%B4%A5%E4%B9%9F%E8%A6%81%E8%83%BD%E8%A2%AB%E7%9C%8B%E8%A7%81"><span class="toc-number">9.</span> <span class="toc-text">日志和错误：失败也要能被看见</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%88%91%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%98%E8%A7%89%E5%BE%97%E8%BF%99%E4%B8%AA%E9%A1%B9%E7%9B%AE%E6%9C%89%E6%84%8F%E6%80%9D"><span class="toc-number">10.</span> <span class="toc-text">我为什么还觉得这个项目有意思</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B9%B3%E5%8F%B0%E9%80%82%E9%85%8D%E7%9C%9F%E6%AD%A3%E9%9A%94%E7%A6%BB%E7%9A%84%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">11.</span> <span class="toc-text">平台适配真正隔离的是什么</span></a></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+
+    
+        <div class="addthis_inline_share_toolbox"></div>
+    
+</div>
+
+
+
+
+
+
+
+  <div id="gitalk-container"></div>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+  <script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+  <script>
+    var gitalk = new Gitalk({
+      clientID: '35ac28a90389c4f48242',
+      clientSecret: 'a7cdd6e1d21d50615b1f58c232cfb940e1e53b8e',
+      repo: 'Acceyuriko.github.io',
+      owner: 'Acceyuriko',
+      admin: ['Acceyuriko'],
+      id: SparkMD5.hash(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false, // Facebook-like distraction free mode
+      title: 'Gitalk comments',
+    })
+    gitalk.render('gitalk-container')
+  </script>
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2025/03/02/xiaohei-baimeow/" title="上一篇: 装修文章也要有自己的家：XiaoHeiBaiMeow 的内容管道和猫咪交互">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2023/10/15/maplecalc/" title="下一篇: 不想再查表了，于是我做了 MapleCalc">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2026/08/20/kamijoutouma-quant/">先把数据弄对，再谈收益曲线：我在 KamijouTouma 里搭了一条交易链</a></li><li class="post-list-item"><a class="post-list-link" href="/2026/05/30/anqrwzui-computer-vision/">从一张 640×640 截图开始：anqrwzui 的视觉实验是怎么跑起来的</a></li><li class="post-list-item"><a class="post-list-link" href="/2025/03/02/xiaohei-baimeow/">装修文章也要有自己的家：XiaoHeiBaiMeow 的内容管道和猫咪交互</a></li><li class="post-list-item"><a class="post-list-link" href="/2024/11/14/chunmao-bot/">群里那句“能不能再查一下”，最后长成了 chunmao</a></li><li class="post-list-item"><a class="post-list-link" href="/2023/10/15/maplecalc/">不想再查表了，于是我做了 MapleCalc</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/06/11/dspyurikoplugin/">把戴森球计划的 Tick 拆开看：一次 Harmony 插件考古</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/05/10/fluid-simulation/">水为什么会炸？我在 FluidSimulation 里跑了两条 SPH 路线</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/01/28/camel-up-state-calculator/">骆驼到底谁更可能赢？我用穷举算了一张桌游概率表</a></li><li class="post-list-item"><a class="post-list-link" href="/2022/01/02/hades%E4%BD%9C%E5%BC%8A%E7%AC%94%E8%AE%B0/">Hades 作弊笔记</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2022-2026 Acceyuriko
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="https://cdn.bootcdn.net/ajax/libs/require.js/2.3.6/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+    <script>
+        var originTitle = document.title;
+        var titleTime;
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                document.title = "(つェ⊂) 我藏好了哦~ " + originTitle;
+                clearTimeout(titleTime);
+            }
+            else {
+                document.title = "(*´∇｀*) 被你发现啦~ " + originTitle;
+                titleTime = setTimeout(function() {
+                    document.title = originTitle;
+                }, 2000);
+            }
+        })
+    </script>
+
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+    <script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-61d98b57938ef42b"></script>
+
+  </div>
+</body>
+</html>
