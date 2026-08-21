@@ -23,7 +23,7 @@
 <meta property="og:description" content="速度、产量、运输和存档并不由同一个字段决定，这篇记录我如何沿着 Harmony Patch 找到真正的运行时入口。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2022-06-11T11:21:26.000Z">
-<meta property="article:modified_time" content="2026-08-20T11:42:32.466Z">
+<meta property="article:modified_time" content="2026-08-21T13:45:33.528Z">
 <meta property="article:author" content="Acceyuriko">
 <meta property="article:tag" content="BepInEx">
 <meta property="article:tag" content="CSharp">
@@ -293,22 +293,22 @@
       
           
         <p><a target="_blank" rel="noopener" href="https://github.com/Acceyuriko/DSPYurikoPlugin">DSPYurikoPlugin</a> 是一个面向《戴森球计划》的个人功能增强插件，也发布在 <a target="_blank" rel="noopener" href="https://dsp.thunderstore.io/package/Acceyuriko/EnableAchievements/">Thunderstore</a> 上。它的功能列表看起来很像一张“把游戏调快一点”的愿望清单，但真正有意思的部分在于：游戏里的速度、产量、运输和星系生成并不都由同一个字段决定，想改得稳定，就得顺着运行时机制找到正确的入口。</p>
-<p>换句话说，这不是把几个数字乘以 10 再打包的项目，而是一次对 Unity 游戏内部系统的运行时考古。考古过程中当然也会挖到“这个字段改了为什么完全没效果”的小化石。<em>(:з」∠)</em></p>
-<h2 id="插件是怎样进入游戏的"><a href="#插件是怎样进入游戏的" class="headerlink" title="插件是怎样进入游戏的"></a>插件是怎样进入游戏的</h2><p>项目是一个 .NET Framework 4.8 类库，运行在 BepInEx 提供的插件环境中，使用 Harmony 对游戏类型和方法打补丁。入口 <code>YurikoPlugin.cs</code> 负责初始化并统一注册各个 Patch 类，具体补丁则按游戏领域拆分：<code>GameMain</code>、<code>GameHistoryData</code>、<code>FactorySystem</code>、<code>StationComponent</code>、<code>RecipeProto</code>、<code>UniverseGen</code> 等各自处理自己的系统。</p>
+<p>换句话说，这不是把几个数字乘以 10 再打包的项目，而是一次对 Unity 游戏内部系统的运行时考古。考古过程中当然也挖到过“这个字段改了为什么完全没效果”的小化石。<em>(:з」∠)</em></p>
+<h2 id="插件是怎样进入游戏的"><a href="#插件是怎样进入游戏的" class="headerlink" title="插件是怎样进入游戏的"></a>插件是怎样进入游戏的</h2><p>项目是一个 .NET Framework 4.8 类库，跑在 BepInEx 提供的插件环境里，用 Harmony 对游戏类型和方法打补丁。入口 <code>YurikoPlugin.cs</code> 负责初始化并统一注册各个 Patch 类，具体补丁按游戏领域拆分：<code>GameMain</code>、<code>GameHistoryData</code>、<code>FactorySystem</code>、<code>StationComponent</code>、<code>RecipeProto</code>、<code>UniverseGen</code> 各管各的系统。</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">BepInEx 加载 YurikoPlugin</span><br><span class="line">          ↓</span><br><span class="line">Harmony 注册 Prefix / Postfix / 原方法替换</span><br><span class="line">          ↓</span><br><span class="line">游戏原型数据 + 运行时 Tick + 存档读写</span><br><span class="line">          ↓</span><br><span class="line">移动、生产、物流、研究、星球和戴森球行为变化</span><br></pre></td></tr></table></figure>
 
-<p>入口只负责装配，行为放在独立 Patch 里；倍率和开关则集中在 <code>YurikoConstants</code> 等位置。这样做的好处很朴素：游戏更新以后，至少可以快速知道是哪个类型、哪个方法、哪个常量受到影响，不需要在一个巨型 Hook 文件里玩寻宝游戏。</p>
+<p>入口只负责装配，行为放在独立 Patch 里；倍率和开关集中在 <code>YurikoConstants</code> 这些位置。好处很朴素：游戏更新以后，至少能快速知道是哪个类型、哪个方法、哪个常量受了影响，不用在一个巨型 Hook 文件里玩寻宝游戏。</p>
 <h2 id="功能范围其实分成三种"><a href="#功能范围其实分成三种" class="headerlink" title="功能范围其实分成三种"></a>功能范围其实分成三种</h2><p>插件覆盖的内容很多：机甲移动、工作和采矿速度，物流运输与生产速度，电力感应塔和运输站范围，研究与配方效率，地基铺设、戴森球建造以及星系生成参数等。</p>
-<p>但它们的生效方式并不一样，大致可以分为三类：</p>
+<p>但它们的生效方式并不一样，大致分三类：</p>
 <ol>
 <li><strong>原型或历史数据调整。</strong> 物品、配方、建筑和部分游戏历史参数在初始化阶段修改，适合影响基础配置。</li>
 <li><strong>运行时 Tick 介入。</strong> 工厂、运输站、分拣器和研究系统每个 Tick 都会重新计算状态，只改初始字段是不够的。</li>
 <li><strong>生成、建造与存档路径。</strong> 星系和戴森节点在生成或建造阶段决定行为，自定义速度还要在导出和导入存档时保持一致。</li>
 </ol>
-<p>这三类边界解释了为什么 Patch 文件会这么多：不是为了显得“模块化”，而是因为游戏自己就把行为分散在不同生命周期里。</p>
-<h2 id="Patch-不是简单的倍率表"><a href="#Patch-不是简单的倍率表" class="headerlink" title="Patch 不是简单的倍率表"></a>Patch 不是简单的倍率表</h2><p>项目里确实有移动、生产、研究等倍率常量，但倍率只是输入，真正决定结果的是游戏运行时怎样消费它们。例如传送带和分拣器的速度统一到 3600，是因为游戏 Tick 中存在物品处理上限；如果只把数字继续往上加，货物可能不再连续，视觉上反而变成一串瞬移。</p>
-<p>装配类建筑则使用固定生产速度 60000，再按照建筑类型换算。生产逻辑还会考虑配方、建筑数量和当前状态，因此只改原型上的显示值，往往不会覆盖工厂实际产出。<code>FactorySystemPatch</code> 会在 Tick 中重新计算矿物与运输站物品的产出，读取生产统计，再把实际结果写回生产寄存器。</p>
-<p>运输站、轨道采集器和行星矿机也有类似问题：获取速度与供应、需求和当前运输状态有关。想让它们“更快”，就要在正确的运行时计算位置调整，而不是盯着一个看起来很像速度的字段发呆。</p>
+<p>这三类边界解释了为什么 Patch 文件这么多：不是为了显得“模块化”，而是游戏自己就把行为分散在不同生命周期里。</p>
+<h2 id="Patch-不是简单的倍率表"><a href="#Patch-不是简单的倍率表" class="headerlink" title="Patch 不是简单的倍率表"></a>Patch 不是简单的倍率表</h2><p>项目里确实有移动、生产、研究等倍率常量，但倍率只是输入，真正决定结果的是游戏运行时怎么消费它们。比如传送带和分拣器的速度统一到 3600，是因为游戏 Tick 里存在物品处理上限；数字继续往上加的话，货物可能不再连续，视觉上反而变成一串瞬移。</p>
+<p>装配类建筑则用固定生产速度 60000，再按建筑类型换算。生产逻辑还会考虑配方、建筑数量和当前状态，所以只改原型上的显示值，往往盖不住工厂的实际产出。<code>FactorySystemPatch</code> 会在 Tick 中重新计算矿物与运输站物品的产出，读取生产统计，再把实际结果写回生产寄存器。</p>
+<p>运输站、轨道采集器和行星矿机也有类似问题：获取速度跟供应、需求和当前运输状态挂钩。想让它们“更快”，就得在正确的运行时计算位置动手，而不是盯着一个看起来很像速度的字段发呆。</p>
 <h2 id="主要补丁按谁来负责什么"><a href="#主要补丁按谁来负责什么" class="headerlink" title="主要补丁按谁来负责什么"></a>主要补丁按谁来负责什么</h2><p>入口注册的 Patch 大致覆盖这些对象：</p>
 <ul>
 <li><code>GameMain</code> &#x2F; <code>GameHistoryData</code>：初始化机甲、物流、研究速度和历史数据，并处理自定义字段的持久化。</li>
@@ -318,23 +318,23 @@
 <li><code>DysonNode</code> &#x2F; <code>StarGen</code> &#x2F; <code>UniverseGen</code>：处理戴森节点建造、星系生成和相关参数。</li>
 <li><code>AchievementLogic</code> &#x2F; <code>GameAbnormalityCheck</code>：在功能增强与游戏成就、异常检测之间做适配。</li>
 </ul>
-<p>Patch 方法既有 Prefix、Postfix，也有在必要场景下替换原方法的实现。Prefix 适合在原逻辑前修改输入或直接拦截，Postfix 适合根据原结果补充行为；完整替换虽然强大，但也更容易与游戏新版本冲突，所以必须知道自己究竟覆盖了什么。</p>
-<h2 id="为什么同一个功能常常需要多个-Patch"><a href="#为什么同一个功能常常需要多个-Patch" class="headerlink" title="为什么同一个功能常常需要多个 Patch"></a>为什么同一个功能常常需要多个 Patch</h2><p>以“生产速度变快”为例，原型数据可能决定建筑的基础参数，工厂 Tick 决定这一帧真正处理了多少物品，生产统计又决定界面和历史数据显示什么。如果只改第一层，建筑面板可能显示变快了，实际产出却没有变化；如果只改 Tick，读档或重新生成对象时又可能恢复默认。</p>
-<p>因此 Patch 的边界要跟着游戏生命周期走：初始化阶段处理默认值，运行阶段处理实时计算，导入导出阶段处理持久化。多个补丁不是重复劳动，而是在不同时间点维护同一项自定义规则。真正危险的是多个 Patch 对同一个字段互相覆盖，却没有记录执行顺序。</p>
-<p>Harmony 的 Prefix &#x2F; Postfix 也要考虑原方法是否可能被其他插件修改。一个只在本地单插件环境里成立的假设，放进玩家的完整 Mod 列表后可能就不成立。这里没有绝对安全的 Hook，能做的是缩小 Patch 范围、记录目标方法，并在版本变化时重新验证。</p>
-<h2 id="用几个具体数字理解-Tick-的边界"><a href="#用几个具体数字理解-Tick-的边界" class="headerlink" title="用几个具体数字理解 Tick 的边界"></a>用几个具体数字理解 Tick 的边界</h2><p>README 里记录了传送带和分拣器统一速度 3600，原因是游戏 Tick 的处理上限与每分钟 3600 个单位相关；超过这个边界，物品可能出现不连续。装配类建筑使用 60000 的固定生产速度，再按建筑类型折算。数字本身不是“越大越好”，它们必须和游戏内部的时间离散化方式匹配。</p>
-<p>这类限制很像在做离散模拟：现实里速度是连续的，游戏里却要在一个个 Tick 中分配整数物品、能量和进度。如果只把倍率乘大，可能得到浮点误差、整数截断或一帧处理不完的队列。理解 Tick，才能知道某个倍率为什么应该停在一个看似奇怪的数字。</p>
-<h2 id="存档是最容易被忘记的那一层"><a href="#存档是最容易被忘记的那一层" class="headerlink" title="存档是最容易被忘记的那一层"></a>存档是最容易被忘记的那一层</h2><p>运行时把速度调高并不等于它会随着存档一起保存。<code>GameHistoryDataPatch</code> 会在导出和导入历史数据时同步自定义的速度、采矿、物流和研究字段。否则可能出现两种很烦的情况：读档以后参数全部恢复默认，或者自定义字段改变了原有数据布局，导致旧存档出现不可预测的问题。</p>
-<p>因此测试插件不能只看“新建一个星球有没有生效”，还要经过修改参数、保存、退出、重新加载、再检查的循环。任何涉及游戏状态的 Patch，都应该把读档作为正常路径，而不是发布以后才发现的售后服务。</p>
-<h2 id="游戏版本耦合：它不是一个普通-NuGet-包"><a href="#游戏版本耦合：它不是一个普通-NuGet-包" class="headerlink" title="游戏版本耦合：它不是一个普通 NuGet 包"></a>游戏版本耦合：它不是一个普通 NuGet 包</h2><p>项目引用了目标游戏的 <code>Assembly-CSharp</code>、<code>UnityEngine</code> 和 <code>UnityEngine.CoreModule</code>。这意味着它天然依赖特定游戏版本的类型、字段和方法签名，并不是换一台机器就能保证完全一致的通用库。</p>
-<p>构建时需要使用目标版本的游戏 DLL，发布时要说明对应的 BepInEx 环境。游戏升级以后，首先应该验证 Harmony 目标方法是否还存在、字段布局有没有改变、调用顺序是否依旧成立，以及存档导入导出有没有受到影响。很多插件不是“代码逻辑突然错了”，而是原来的方法已经被游戏更新悄悄换掉了。</p>
-<p>这也是我觉得这类项目很适合作为学习记录的原因：它会逼着人理解依赖不是只有 <code>csproj</code> 里的版本号，运行时类型布局、引擎生命周期和宿主程序的更新同样是依赖。</p>
-<h2 id="我会怎样验证一个-Patch-没有偷偷伤害存档"><a href="#我会怎样验证一个-Patch-没有偷偷伤害存档" class="headerlink" title="我会怎样验证一个 Patch 没有偷偷伤害存档"></a>我会怎样验证一个 Patch 没有偷偷伤害存档</h2><p>验证时不能只挑最顺利的路径。至少要覆盖：新建游戏时参数是否正确、已有存档加载后参数是否恢复、修改配置后是否影响下一次计算、导出再导入后自定义字段是否还在，以及关闭插件后原版数据能否被正常读取。</p>
-<p>如果一个 Patch 影响 <code>GameHistoryData</code>，还要比较字段长度、默认值和旧版本存档。游戏能进入主界面并不代表数据完全兼容，真正的检查应该继续走到工厂、研究、物流和历史统计页面。插件开发里，“没有立刻崩溃”只是第一道门槛。</p>
-<p>同样地，生产速度的验证不能只看物品数量，还要看运输站供应需求、分拣器队列、生产统计和长时间运行后的库存是否一致。运行时修改越深入，越需要一组稳定的手工场景来做回归。</p>
-<h2 id="分发与使用时要留一点余地"><a href="#分发与使用时要留一点余地" class="headerlink" title="分发与使用时要留一点余地"></a>分发与使用时要留一点余地</h2><p>项目通过 BepInEx 插件目录加载，也发布到 Thunderstore，README 里保留了功能 Roadmap。使用这类插件前应备份存档，确认游戏版本和依赖环境，并遵守当前游戏、平台及社区规则。尤其是会影响成就、异常检测或多人环境的功能，不能只因为“本地能运行”就认为它适合所有场景。</p>
-<p>DSPYurikoPlugin 最后留下的并不只是几个更大的数字，而是一组关于“游戏系统在哪里真正做决定”的笔记：原型数据、运行时 Tick、存档和版本兼容性缺一不可。能把一个陌生系统拆成这些入口，已经比单纯把倍率写进配置文件更有意思了 (｀・ω・´)</p>
-<p>如果把它当成一份学习材料，我会建议先从一个最小 Patch 开始：找到一个明确的方法，记录原始输入和输出，再只改变一个变量，最后用新建存档和旧存档各跑一遍。等生命周期、调用顺序和恢复路径都弄明白，再考虑把多个实验规则组合起来。一步一步来，才不会被自己的倍率表反过来支配。</p>
+<p>Patch 方法既有 Prefix、Postfix，也有在必要场景下替换原方法的实现。Prefix 适合在原逻辑前修改输入或直接拦截，Postfix 适合根据原结果补充行为；完整替换虽然威力大，但也更容易跟游戏新版本冲突，所以必须清楚自己究竟覆盖了什么。</p>
+<h2 id="为什么同一个功能常常需要多个-Patch"><a href="#为什么同一个功能常常需要多个-Patch" class="headerlink" title="为什么同一个功能常常需要多个 Patch"></a>为什么同一个功能常常需要多个 Patch</h2><p>拿“生产速度变快”来说：原型数据可能决定建筑的基础参数，工厂 Tick 决定这一帧真正处理了多少物品，生产统计又决定界面和历史数据显示什么。只改第一层，建筑面板可能显示变快了，实际产出纹丝不动；只改 Tick，读档或重新生成对象时又可能被打回原形。</p>
+<p>所以 Patch 的边界要跟着游戏生命周期走：初始化阶段处理默认值，运行阶段处理实时计算，导入导出阶段处理持久化。多个补丁不是重复劳动，而是在不同时间点维护同一项自定义规则。真正危险的是多个 Patch 对同一个字段互相覆盖，却没人记录执行顺序。</p>
+<p>Harmony 的 Prefix &#x2F; Postfix 还要考虑原方法会不会被其他插件改过。只在本地单插件环境成立的假设，放进玩家的完整 Mod 列表后可能就不成立了。这里没有绝对安全的 Hook，能做的是缩小 Patch 范围、记录目标方法，版本变化时重新验证。</p>
+<h2 id="用几个具体数字理解-Tick-的边界"><a href="#用几个具体数字理解-Tick-的边界" class="headerlink" title="用几个具体数字理解 Tick 的边界"></a>用几个具体数字理解 Tick 的边界</h2><p>README 里记录了传送带和分拣器统一速度 3600——游戏 Tick 的处理上限和每分钟 3600 个单位相关，超过这个边界物品就可能不连续。装配类建筑用 60000 的固定生产速度再折算。这些数字不是“越大越好”，它们必须和游戏内部的时间离散化方式匹配。</p>
+<p>这类限制很像在做离散模拟：现实里速度是连续的，游戏里却要在一个个 Tick 中分配整数物品、能量和进度。倍率直接乘大，可能得到浮点误差、整数截断，或者一帧处理不完的队列。理解了 Tick，才能明白某个倍率为什么应该停在一个看似奇怪的数字上。</p>
+<h2 id="存档是最容易被忘记的那一层"><a href="#存档是最容易被忘记的那一层" class="headerlink" title="存档是最容易被忘记的那一层"></a>存档是最容易被忘记的那一层</h2><p>运行时把速度调高，不等于它会跟着存档一起保存。<code>GameHistoryDataPatch</code> 会在导出和导入历史数据时同步自定义的速度、采矿、物流和研究字段。不然会出现两种很烦的情况：读档以后参数全部恢复默认，或者自定义字段改变了原有数据布局，旧存档读出不可预测的问题。</p>
+<p>所以我测试插件从来不只看“新建一个星球有没有生效”，还要走完修改参数、保存、退出、重新加载、再检查这一整圈循环。任何涉及游戏状态的 Patch，都应该把读档当成正常路径，而不是发布以后才发现的售后服务。</p>
+<h2 id="游戏版本耦合：它不是一个普通-NuGet-包"><a href="#游戏版本耦合：它不是一个普通-NuGet-包" class="headerlink" title="游戏版本耦合：它不是一个普通 NuGet 包"></a>游戏版本耦合：它不是一个普通 NuGet 包</h2><p>项目引用了目标游戏的 <code>Assembly-CSharp</code>、<code>UnityEngine</code> 和 <code>UnityEngine.CoreModule</code>。这意味着它天然依赖特定游戏版本的类型、字段和方法签名，并不是换台机器就能保证一致的通用库。</p>
+<p>构建要用目标版本的游戏 DLL，发布时要说明对应的 BepInEx 环境。游戏升级之后，第一件事是验证 Harmony 目标方法还在不在、字段布局变没变、调用顺序还成不成立、存档导入导出有没有受影响。很多插件不是“代码逻辑突然错了”，而是原来的方法已经被游戏更新悄悄换掉了。</p>
+<p>这也是我觉得这类项目很适合当学习记录的原因：它会逼着人理解依赖不只是 <code>csproj</code> 里的版本号，运行时类型布局、引擎生命周期和宿主程序的更新同样是依赖。</p>
+<h2 id="我会怎样验证一个-Patch-没有偷偷伤害存档"><a href="#我会怎样验证一个-Patch-没有偷偷伤害存档" class="headerlink" title="我会怎样验证一个 Patch 没有偷偷伤害存档"></a>我会怎样验证一个 Patch 没有偷偷伤害存档</h2><p>验证时不能只挑最顺利的路径。至少要覆盖：新建游戏参数是否正确、已有存档加载后参数是否恢复、修改配置后是否影响下一次计算、导出再导入后自定义字段还在不在，以及关闭插件后原版数据能否正常读取。</p>
+<p>如果 Patch 动了 <code>GameHistoryData</code>，还要比较字段长度、默认值和旧版本存档。能进主界面不代表数据兼容，真正的检查要继续走到工厂、研究、物流和历史统计页面。插件开发里，“没有立刻崩溃”只是第一道门槛。</p>
+<p>同理，生产速度的验证不能只数物品，还要看运输站供应需求、分拣器队列、生产统计和长时间运行后的库存是否一致。运行时修改越深，越需要一组稳定的手工场景来做回归。</p>
+<h2 id="分发与使用时要留一点余地"><a href="#分发与使用时要留一点余地" class="headerlink" title="分发与使用时要留一点余地"></a>分发与使用时要留一点余地</h2><p>项目通过 BepInEx 插件目录加载，也发布到 Thunderstore，README 里保留了功能 Roadmap。用这类插件前请备份存档，确认游戏版本和依赖环境，并遵守当前游戏、平台及社区规则。尤其是会影响成就、异常检测或多人环境的功能，不能因为“本地能运行”就认为它适合所有场景。</p>
+<p>DSPYurikoPlugin 最后留下的并不只是几个更大的数字，而是一组关于“游戏系统在哪里真正做决定”的笔记：原型数据、运行时 Tick、存档和版本兼容性缺一不可。能把一个陌生系统拆成这些入口，已经比单纯把倍率写进配置文件有意思多了 (｀・ω・´)</p>
+<p>如果把它当成学习材料，我建议先从一个最小 Patch 开始：找到一个明确的方法，记录原始输入和输出，只改变一个变量，然后用新建存档和旧存档各跑一遍。等生命周期、调用顺序和恢复路径都弄明白了，再把多个实验规则组合起来。一步一步来，才不会被自己的倍率表反过来支配。</p>
 <p>项目代码见 <a target="_blank" rel="noopener" href="https://github.com/Acceyuriko/DSPYurikoPlugin">github.com&#x2F;Acceyuriko&#x2F;DSPYurikoPlugin</a>。</p>
 
       
@@ -347,7 +347,7 @@
         <p><span>本文标题:</span><a href="/2022/06/11/dspyurikoplugin/">把戴森球计划的 Tick 拆开看：一次 Harmony 插件考古</a></p>
         <p><span>文章作者:</span><a href="/" title="回到主页"></a></p>
         <p><span>发布时间:</span>2022-06-11, 19:21:26</p>
-        <p><span>最后更新:</span>2026-08-20, 11:42:32</p>
+        <p><span>最后更新:</span>2026-08-21, 13:45:33</p>
         <p>
             <span>原始链接:</span><a class="post-url" href="/2022/06/11/dspyurikoplugin/" title="把戴森球计划的 Tick 拆开看：一次 Harmony 插件考古">https://acceyuriko.github.io/2022/06/11/dspyurikoplugin/</a>
             <span class="copy-path" data-clipboard-text="原文: https://acceyuriko.github.io/2022/06/11/dspyurikoplugin/　　作者: " title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
